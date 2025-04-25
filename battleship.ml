@@ -360,10 +360,10 @@ let rec manual_placing_ship_list (p_ship_list,p_grid,p_params) =
       place_ship (p_positions, p_grid);  (* Place le bateau sur la grille *)
       colo_ship_cells (p_positions, CPgraphics.yellow, p_params);  (* Colorie les cellules occupées par le bateau en jaune *)
       
-      manual_placing_ship_list (tail) (p_grid) (p_params)  (* Appel récursif pour placer le prochain bateau *)
+      manual_placing_ship_list (tail,p_grid,p_params)  (* Appel récursif pour placer le prochain bateau *)
     else
       (* Si le placement est invalide, on redemande à l'utilisateur de placer le bateau *)
       draw_message ("Le bateau ne peut pas être placé ici. Essayez à nouveau.");  (* Message d'erreur *)
       
-      manual_placing_ship_list (ship :: tail) (p_grid) (p_params)  (* On garde le même bateau et recommence le placement *)
+      manual_placing_ship_list (ship :: tail, p_grid,p_params)  (* On garde le même bateau et recommence le placement *)
 ;;
