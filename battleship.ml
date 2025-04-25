@@ -367,3 +367,12 @@ let rec manual_placing_ship_list (p_ship_list,p_grid,p_params) =
       
       manual_placing_ship_list (ship :: tail, p_grid,p_params)  (* On garde le même bateau et recommence le placement *)
 ;;
+
+(* Définition du type structuré t_battleship *)
+type t_battleship = {
+  player_grid : char array array;  (* Grille du joueur *)
+  computer_grid : char array array;  (* Grille de l'ordinateur *)
+  player_ships : (string * int) list;  (* Liste des bateaux du joueur *)
+  computer_ships : (string * int) list;  (* Liste des bateaux de l'ordinateur *)
+}
+;;
