@@ -373,6 +373,28 @@ let display_grid(p_ships, p_grid , p_params, p_player: t_ship list * t_grid * t_
 
 (* ITERATION 3 *)
 
+(* Implementation provisoire en attendant celle de Nadia *)
+(**
+Affiche des messages au joueur.
+@param p_message chaine de charactère qu'il faudra afficher au joueur.
+@param p_params paramètres du jeu.
+@author Bentz POLO
+*)
+let display_message(p_message, p_params : string list * t_params ) : unit =
+  let l_x : int = !(p_params.margin) + 2 * !(p_params.cell_size) * (!(p_params.grid_size) + 2) (* longueur de la zone d'affichage *)
+  and l_y : int = !(p_params.message_size) (* hauteur de la zone d'affichage *)
+  in
+  CPgraphics.moveto(!(p_params.margin), !(p_params.margin));
+  CPgraphics.set_color(CPgraphics.white);
+  CPgraphics.fill_rect(!(p_params.margin), !(p_params.margin), l_x, l_y);
+  (* CPgraphics.draw_rect(!(p_params.margin), !(p_params.margin), l_x, l_y); *)
+  CPgraphics.set_color(CPgraphics.black);
+  for i=0 to List.length(p_message) - 1 do
+    CPgraphics.moveto(!(p_params.margin),(!(p_params.margin) + l_y) - (i+2) * !(p_params.cell_size));
+    CPgraphics.draw_string(List.nth p_message i)
+  done
+;;
+
 (**
    Renvoi la cellule où se trouve un pixel donné
    @param p_x coordonné x du pixel en question
