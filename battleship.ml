@@ -59,7 +59,10 @@ type t_ship = {
   positions : (char * int) list;
 } ;;
 
-()
+type t_direction = UP | DOWN | LEFT | RIGHT ;;
+
+(* Type pour déterminer la grille ou le joueur a cliqué
+ @since version 3*)
 type t_where = ORDINATEUR | JOUEUR | NONE ;;
 
 (* Définition du type structuré t_battleship
@@ -220,7 +223,7 @@ Calcule la liste des positions occupées par un bateau.
 @author Nadia Mouacha
 @since version 2
 *)
-let rec positions_list (p_start, p_dir, p_length  : (char * int) * char * int) : (char * int) list =
+let rec positions_list (p_start, p_dir, p_length  : (char * int) * t_direction * int) : (char * int) list =
   if p_length <= 0 then
     []
   else
@@ -228,16 +231,16 @@ let rec positions_list (p_start, p_dir, p_length  : (char * int) * char * int) :
     and l_row : int = snd (p_start) in
 
     let l_next_pos : char * int =
-      if p_dir = 'u' then
+      if p_dir = UP then
         (l_col, l_row - 1)
       else 
-        if p_dir = 'd' then
+        if p_dir = DOWN then
         (l_col, l_row + 1)
       else 
-        if p_dir = 'l' then
+        if p_dir = LEFT then
         (char_of_int (int_of_char l_col - 1), l_row)
       else 
-        if p_dir = 'r' then
+        if p_dir = RIGHT then
         (char_of_int (int_of_char l_col + 1), l_row)
       else
         failwith "Direction invalide"
@@ -255,7 +258,7 @@ let rec positions_list (p_start, p_dir, p_length  : (char * int) * char * int) :
  @author Zeinebou NIANG
  @since version 2
  *)
-let can_place_ship (p_start, p_direction, p_length, p_grid, p_params : (char * int) * char * int * t_grid * t_params) : bool =
+let can_place_ship (p_start, p_direction, p_length, p_grid, p_params : (char * int) * t_direction * int * t_grid * t_params) : bool =
   (* Récupérer la liste des positions du bateau *)
   let l_positions_list = positions_list(p_start, p_direction, p_length) in
 
@@ -296,7 +299,7 @@ let rec auto_placing_ships(p_ships, p_grid, p_param : (string * int) list * t_gr
   else
     let l_pos_x : char = char_of_int(int_of_char('A') + Random.int(Array.length(p_grid)))
     and l_pos_y : int = Random.int(Array.length(p_grid))
-    and l_direction : char = [|'u'; 'd'; 'l'; 'r'|].(Random.int(4))
+    and l_direction : t_direction = [| UP ; DOWN ; LEFT ; RIGHT |].(Random.int(4))
     in
     let l_current_ship : t_ship = {name = fst(List.hd(p_ships)); positions = positions_list((l_pos_x, l_pos_y), l_direction, snd(List.hd(p_ships)))}
     in
@@ -459,7 +462,7 @@ let battleship_game() : unit =
   CPgraphics.set_window_title("Battleship Game");
   (* NOTE: Pour l'instant set_text_size renvoit une erreur,
   qui provient du fait qu'il ne trouve la police de caractère*)
-  CPgraphics.set_text_size( !(settings.cell_size) );
+  (* CPgraphics.set_text_size( !(settings.cell_size) ); *)
   display_empty_grids(!(settings.grid_size), !(settings.cell_size), !(settings.margin), !(settings.message_size));
   display_grid(auto_placing_ships(!(settings.ship_sizes), test_grid, settings), test_grid, settings, JOUEUR);
   display_grid(auto_placing_ships(!(settings.ship_sizes), test_grid, settings), test_grid, settings, ORDINATEUR);
