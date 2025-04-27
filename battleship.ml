@@ -297,7 +297,7 @@ let rec auto_placing_ships(p_ships, p_grid, p_param : (string * int) list * t_gr
     let l_pos_x : char = char_of_int(int_of_char('A') + Random.int(Array.length(p_grid)))
     and l_pos_y : int = Random.int(Array.length(p_grid))
     (* and l_direction : char = [|'u'; 'd'; 'l'; 'r'|].(Random.int(4)) *)
-    and l_direction : string = [|'l'; 'r'; 'u'; 'd'|].(Random.int(2))
+    and l_direction : char = [|'l'; 'r'; 'u'; 'd'|].(Random.int(2))
     in
     let l_current_ship : t_ship = {name = fst(List.hd(p_ships)); positions = positions_list((l_pos_x, l_pos_y), l_direction, snd(List.hd(p_ships)))}
     in
