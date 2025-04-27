@@ -255,7 +255,7 @@ let rec positions_list (p_start, p_dir, p_length  : (char * int) * char * int) :
  @author Zeinebou NIANG
  @since version 2
  *)
-let can_place_ship (p_start, p_direction, p_length, p_grid, p_params : (char * int) * string * int * t_grid * t_params) : bool =
+let can_place_ship (p_start, p_direction, p_length, p_grid, p_params : (char * int) * char * int * t_grid * t_params) : bool =
   (* Récupérer la liste des positions du bateau *)
   let l_positions_list = positions_list(p_start, p_direction, p_length) in
 
