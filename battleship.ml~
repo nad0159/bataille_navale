@@ -464,96 +464,97 @@ let battleship_game() : unit =
 battleship_game();;
 
 
-(* Fonctions Itération 3 : *)
-(**
-Affiche un message dans la zone de texte en bas de l'écran.
-@param p_text Le texte à afficher.
-@author Niang Zeinebou
-*)
-let draw_message (p_text : string) : unit =
-  let (l_x, l_y) = (10, 250) in  (* Coordonnées du coin supérieur gauche de la zone de message *)
-  CPgraphics.set_color(CPgraphics.white);
-  CPgraphics.fill_rect(l_x, l_y, 380, 30);  (* Rectangle blanc pour la zone de message *)
-  CPgraphics.set_color(CPgraphics.black);
-  CPgraphics.moveto(l_x + 5, l_y + 5);
-  CPgraphics.draw_string (p_text);  (* Affiche le message à l'utilisateur *)
-;;
-
-(**
-Demande à l'utilisateur de choisir une position pour placer un bateau.
-Le clic de souris est traduit en coordonnées sur la grille (colonne et ligne).
-@return La position sous forme de couple (colonne, ligne)
-@author Niang Zeinebou.
-*)
-let ask_position () : (char * int) =
-  let (l_x, l_y) = CPgraphics.mouse_pos () in
-  let l_column = char_of_int ((l_x - 10) / 20 + 65) in  (* Conversion pixel -> lettre de colonne *)
-  let l_row = 10 - (l_y - 60) / 20 in  (* Conversion pixel -> numéro de ligne *)
-  (l_column, l_row)
-;;
-
-
-(**
-Demande à l'utilisateur de choisir la direction d'un bateau (H pour horizontal, V pour vertical).
-@return La direction choisie ('H' ou 'V')
-@author Niang Zeinebou.
-*)
-let ask_direction () : string =
-  let rec loop () =
-    let l_key = CPgraphics.read_key () in
-    if (l_key = 'h' || l_key = 'H') then "H"
-    else if (l_key = 'v' || l_key = 'V') then "V"
-    else loop ()  (* Répéte jusqu'à ce que l'utilisateur entre 'H' ou 'V' *)
-  in
-  loop ()
-;;
-
-(**
-Colorie les cases occupées par un bateau sur la grille en jaune.
-@param p_positions La liste des positions occupées par le bateau.
-@param p_params Les paramètres du jeu (taille des cellules, taille de la grille, etc.)
-@author Niang Zeinebou.
-*)
-let color_ship_cells (p_positions,p_params) =
-  List.iter (fun (l_column, l_row) ->
-    (* Pour chaque position, on calcule la position en pixel et on colore la cellule *)
-    color_cell((l_column, l_row), CPgraphics.yellow ,p_params)) p_positions
-;;
-
-(**
-La fonction gère le placement de chaque bateau dans la liste `p_ship_list`.
-Pour chaque bateau, elle demande à l'utilisateur de spécifier une position et une direction,
-vérifie si le placement est valide, et place le bateau si c'est le cas.
-Colorie les bateaux placés en jaune
-En cas de placement invalide, elle redemande à l'utilisateur de recommencer.
-
-@param p_ship_list La liste des bateaux à placer. Chaque bateau est un couple (nom_bateau, taille_bateau).
-@param p_grid La grille de jeu sur laquelle les bateaux sont placés.
-@param p_params Les paramètres du jeu (par exemple, la taille des cellules, etc.)
-@author Niang Zeinebou.
-*)
-let rec manual_placing_ship_list (p_ship_list,p_grid,p_params) =
-  match p_ship_list with
-  | [] -> ()  (* Si la liste est vide, la fonction se termine *)
-  | ship :: tail ->
-    (* Demande de positionnement du bateau *)
-    draw_message ("Placez le " ^ (fst(ship)) ^ " : ");  (* Affiche un message demandant de placer le bateau *)
-
-    let p_start = ask_position () in  (* Demande la position de départ du bateau *)
-    let p_direction = ask_direction () in  (* Demande la direction du bateau H ou V *)
-
-    (* Vérification du placement du bateau *)
-    if can_place_ship (p_start, p_direction, snd(ship), p_grid, p_params) then
-      (* Si le placement est valide, on place le bateau et on colorie les cellules occupées *)
-      let p_positions = get_positions (p_start, p_direction, snd(ship)) in  (* Calcule les positions des cellules occupées par le bateau *)
-
-      place_ship (p_positions, p_grid);  (* Place le bateau sur la grille *)
-      colo_ship_cells (p_positions, CPgraphics.yellow, p_params);  (* Colorie les cellules occupées par le bateau en jaune *)
-
-      manual_placing_ship_list (tail,p_grid,p_params)  (* Appel récursif pour placer le prochain bateau *)
-    else
-      (* Si le placement est invalide, on redemande à l'utilisateur de placer le bateau *)
-      draw_message ("Le bateau ne peut pas être placé ici. Essayez à nouveau.");  (* Message d'erreur *)
-
-      manual_placing_ship_list (ship :: tail, p_grid,p_params)  (* On garde le même bateau et recommence le placement *)
-;;
+(* (* Fonctions Itération 3 : *) *)
+(* (** *)
+(* Affiche un message dans la zone de texte en bas de l'écran. *)
+(* @param p_text Le texte à afficher. *)
+(* @author Niang Zeinebou *)
+(* *) *)
+(* let draw_message (p_text : string) : unit = *)
+(*   let (l_x, l_y) = (10, 250) in  (* Coordonnées du coin supérieur gauche de la zone de message *) *)
+(*   CPgraphics.set_color(CPgraphics.white); *)
+(*   CPgraphics.fill_rect(l_x, l_y, 380, 30);  (* Rectangle blanc pour la zone de message *) *)
+(*   CPgraphics.set_color(CPgraphics.black); *)
+(*   CPgraphics.moveto(l_x + 5, l_y + 5); *)
+(*   CPgraphics.draw_string (p_text);  (* Affiche le message à l'utilisateur *) *)
+(* ;; *)
+(**)
+(* (** *)
+(* Demande à l'utilisateur de choisir une position pour placer un bateau. *)
+(* Le clic de souris est traduit en coordonnées sur la grille (colonne et ligne). *)
+(* @return La position sous forme de couple (colonne, ligne) *)
+(* @author Niang Zeinebou. *)
+(* *) *)
+(* let ask_position () : (char * int) = *)
+(*   let (l_x, l_y) = CPgraphics.mouse_pos () in *)
+(*   let l_column = char_of_int ((l_x - 10) / 20 + 65) in  (* Conversion pixel -> lettre de colonne *) *)
+(*   let l_row = 10 - (l_y - 60) / 20 in  (* Conversion pixel -> numéro de ligne *) *)
+(*   (l_column, l_row) *)
+(* ;; *)
+(**)
+(**)
+(* (** *)
+(* Demande à l'utilisateur de choisir la direction d'un bateau (H pour horizontal, V pour vertical). *)
+(* @return La direction choisie ('H' ou 'V') *)
+(* @author Niang Zeinebou. *)
+(* *) *)
+(* let ask_direction () : string = *)
+(*   let rec loop () = *)
+(*     let l_key = CPgraphics.read_key () in *)
+(*     if (l_key = 'h' || l_key = 'H') then "H" *)
+(*     else if (l_key = 'v' || l_key = 'V') then "V" *)
+(*     else loop ()  (* Répéte jusqu'à ce que l'utilisateur entre 'H' ou 'V' *) *)
+(*   in *)
+(*   loop () *)
+(* ;; *)
+(**)
+(* (** *)
+(* Colorie les cases occupées par un bateau sur la grille en jaune. *)
+(* @param p_positions La liste des positions occupées par le bateau. *)
+(* @param p_params Les paramètres du jeu (taille des cellules, taille de la grille, etc.) *)
+(* @author Niang Zeinebou. *)
+(* *) *)
+(* let color_ship_cells (p_positions,p_params) = *)
+(*   List.iter (fun (l_column, l_row) -> *)
+(*     (* Pour chaque position, on calcule la position en pixel et on colore la cellule *) *)
+(*     color_cell((l_column, l_row), CPgraphics.yellow ,p_params)) p_positions *)
+(* ;; *)
+(**)
+(* (** *)
+(* La fonction gère le placement de chaque bateau dans la liste `p_ship_list`. *)
+(* Pour chaque bateau, elle demande à l'utilisateur de spécifier une position et une direction, *)
+(* vérifie si le placement est valide, et place le bateau si c'est le cas. *)
+(* Colorie les bateaux placés en jaune *)
+(* En cas de placement invalide, elle redemande à l'utilisateur de recommencer. *)
+(**)
+(* @param p_ship_list La liste des bateaux à placer. Chaque bateau est un couple (nom_bateau, taille_bateau). *)
+(* @param p_grid La grille de jeu sur laquelle les bateaux sont placés. *)
+(* @param p_params Les paramètres du jeu (par exemple, la taille des cellules, etc.) *)
+(* @author Niang Zeinebou. *)
+(* *) *)
+(* let rec manual_placing_ship_list (p_ship_list,p_grid,p_params) = *)
+(*   match p_ship_list with *)
+(*   | [] -> ()  (* Si la liste est vide, la fonction se termine *) *)
+(*   | ship :: tail -> *)
+(*     (* Demande de positionnement du bateau *) *)
+(*     draw_message ("Placez le " ^ (fst(ship)) ^ " : ");  (* Affiche un message demandant de placer le bateau *) *)
+(**)
+(*     let p_start = ask_position () in  (* Demande la position de départ du bateau *) *)
+(*     let p_direction = ask_direction () in  (* Demande la direction du bateau H ou V *) *)
+(**)
+(*     (* Vérification du placement du bateau *) *)
+(*     if can_place_ship (p_start, p_direction, snd(ship), p_grid, p_params) then *)
+(*       (* Si le placement est valide, on place le bateau et on colorie les cellules occupées *) *)
+(*       let p_positions = get_positions (p_start, p_direction, snd(ship)) in  (* Calcule les positions des cellules occupées par le bateau *) *)
+(**)
+(*       place_ship (p_positions, p_grid);  (* Place le bateau sur la grille *) *)
+(*       colo_ship_cells (p_positions, CPgraphics.yellow, p_params);  (* Colorie les cellules occupées par le bateau en jaune *) *)
+(**)
+(*       manual_placing_ship_list (tail,p_grid,p_params)  (* Appel récursif pour placer le prochain bateau *) *)
+(*     else *)
+(*       (* Si le placement est invalide, on redemande à l'utilisateur de placer le bateau *) *)
+(*       draw_message ("Le bateau ne peut pas être placé ici. Essayez à nouveau.");  (* Message d'erreur *) *)
+(**)
+(*       manual_placing_ship_list (ship :: tail, p_grid,p_params)  (* On garde le même bateau et recommence le placement *) *)
+(* ;; *)
+(**)

@@ -28,10 +28,6 @@ let test_generate_grid_matrix_func () : unit =
         assert_equals(('E', 4), (test_get(l_res)).(3).(4).coord)
 ;;
 
-(*TODO*)
-(* Cas ou la liste est vide *)
-let test_place_ship_struc () : unit =
-        let l_
 (* Cas unique. La fonction ne prend*)
 (* let test_auto_placing_ships_func () : unit = *)
 
