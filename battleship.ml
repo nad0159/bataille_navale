@@ -41,9 +41,6 @@ type t_params = {
  @since version 2 *)
 type t_state = EMPTY | OCCUPIED | CLICKED | TOUCHED | DESTROYED ;;
 
-(** Type de direction pour les bateaux *)
-type t_direction = UP | DOWN | LEFT | RIGHT ;;
-
 (** Type représentant les cellules 
  @since version 2 *)
 type t_cell = {
@@ -217,13 +214,13 @@ let rec place_ship(p_positions, p_grid : (char * int) list * t_grid): unit =
 (**
 Calcule la liste des positions occupées par un bateau.
 @param p_start position de départ (colonne, ligne)
-@param p_dir direction du bateau (type t_direction)
+@param p_dir direction du bateau ('l', 'r', 'u', 'd')
 @param p_length taille du bateau
 @return liste des positions occupées
 @author Nadia Mouacha
 @since version 2
 *)
-let rec positions_list (p_start, p_dir, p_length  : (char * int) * t_direction * int) : (char * int) list =
+let rec positions_list (p_start, p_dir, p_length  : (char * int) * char * int) : (char * int) list =
   if p_length <= 0 then
     []
   else
@@ -231,16 +228,16 @@ let rec positions_list (p_start, p_dir, p_length  : (char * int) * t_direction *
     and l_row : int = snd (p_start) in
 
     let l_next_pos : char * int =
-      if p_dir = UP then
+      if p_dir = 'u' then
         (l_col, l_row - 1)
       else 
-        if p_dir = DOWN then
+        if p_dir = 'd' then
         (l_col, l_row + 1)
       else 
-        if p_dir = LEFT then
+        if p_dir = 'l' then
         (char_of_int (int_of_char l_col - 1), l_row)
       else 
-        if p_dir = RIGHT then
+        if p_dir = 'r' then
         (char_of_int (int_of_char l_col + 1), l_row)
       else
         failwith "Direction invalide"
@@ -300,7 +297,7 @@ let rec auto_placing_ships(p_ships, p_grid, p_param : (string * int) list * t_gr
     let l_pos_x : char = char_of_int(int_of_char('A') + Random.int(Array.length(p_grid)))
     and l_pos_y : int = Random.int(Array.length(p_grid))
     (* and l_direction : char = [|'u'; 'd'; 'l'; 'r'|].(Random.int(4)) *)
-    and l_direction : string = [|"H"; "V"|].(Random.int(2))
+    and l_direction : string = [|'l'; 'r'; 'u'; 'd'|].(Random.int(2))
     in
     let l_current_ship : t_ship = {name = fst(List.hd(p_ships)); positions = positions_list((l_pos_x, l_pos_y), l_direction, snd(List.hd(p_ships)))}
     in
