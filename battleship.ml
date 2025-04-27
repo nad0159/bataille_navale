@@ -348,7 +348,7 @@ let color_cell(p_coords, p_color, p_params, p_player : (char * int) * CPgraphics
       cell_to_pixel(p_coords, (!(p_params.margin) + x_offset, !(p_params.margin) + !(p_params.message_size)), !(p_params.cell_size), !(p_params.grid_size))
   in
   CPgraphics.set_color(p_color);
-  CPgraphics.fill_rect(l_x, l_y, !(p_params.cell_size), !(p_params.cell_size))
+  CPgraphics.fill_rect(l_x + 1, l_y + 1, !(p_params.cell_size) - 1, !(p_params.cell_size) - 1)
 ;;
 
 (* NOTE: List.nth ne fonctionne pas avec les conventions
@@ -421,21 +421,21 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
 ;;
 
 
-let init_battleship(p_params : t_params) : t_battleship =
-  let l_player_grid = generate_grid_matrix(!(p_params.grid_size))
-  and l_computer_grid = generate_grid_matrix(!(p_params.grid_size))
-  in
-  let l_player_ships = manual_placing_ships(!(p_params.ship_sizes), l_player_grid, p_params)
-  and l_computer_ships = auto_placing_ships(!(p_params.ship_sizes), l_computer_grid, p_params)
-  in
-  let battleship : t_battleship ={
-    player_grid = l_player_grid; 
-    computer_grid = l_computer_grid;
-    player_ships = l_player_ships;
-    computer_ships = l_computer_ships;
-  }
-  in battleship
-;;
+(* let init_battleship(p_params : t_params) : t_battleship = *)
+(*   let l_player_grid = generate_grid_matrix(!(p_params.grid_size)) *)
+(*   and l_computer_grid = generate_grid_matrix(!(p_params.grid_size)) *)
+(*   in *)
+(*   let l_player_ships = manual_placing_ships(!(p_params.ship_sizes), l_player_grid, p_params) *)
+(*   and l_computer_ships = auto_placing_ships(!(p_params.ship_sizes), l_computer_grid, p_params) *)
+(*   in *)
+(*   let battleship : t_battleship ={ *)
+(*     player_grid = l_player_grid;  *)
+(*     computer_grid = l_computer_grid; *)
+(*     player_ships = l_player_ships; *)
+(*     computer_ships = l_computer_ships; *)
+(*   } *)
+(*   in battleship *)
+(* ;; *)
 
 (**
   Fonction principale du jeu. Lance la fenetre graphique et mets à jour le titre et
