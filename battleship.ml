@@ -234,13 +234,13 @@ let rec positions_list (p_start, p_dir, p_length  : (char * int) * t_direction *
       if p_dir = UP then
         (l_col, l_row - 1)
       else 
-        if p_dir = DOWN then
+      if p_dir = DOWN then
         (l_col, l_row + 1)
       else 
-        if p_dir = LEFT then
+      if p_dir = LEFT then
         (char_of_int (int_of_char l_col - 1), l_row)
       else 
-        if p_dir = RIGHT then
+      if p_dir = RIGHT then
         (char_of_int (int_of_char l_col + 1), l_row)
       else
         failwith "Direction invalide"
@@ -361,11 +361,14 @@ Scanne la liste de bateau placés et colores le cases qu'ils occupents
 @since version 2
 *)
 let display_grid(p_ships, p_grid , p_params, p_player: t_ship list * t_grid * t_params * t_where) : unit =
-  for i=0 to List.length(p_ships) - 1 do
-    for j=0 to List.length((List.nth p_ships i).positions) - 1 do
-      color_cell((List.nth (List.nth p_ships i).positions j), CPgraphics.grey, p_params, p_player)
+  if p_player = ORDINATEUR then
+    ()
+  else
+    for i=0 to List.length(p_ships) - 1 do
+      for j=0 to List.length((List.nth p_ships i).positions) - 1 do
+        color_cell((List.nth (List.nth p_ships i).positions j), CPgraphics.grey, p_params, p_player)
+      done
     done
-  done
 ;;
 
 (* ITERATION 3 *)
@@ -389,9 +392,9 @@ let cell_of_pixel(p_x, p_y, p_params : int * int * t_params) : char * int =
   in let l_x4 : int = l_x3 + !(p_params.grid_size) * !(p_params.cell_size)
   in
   if l_y1 < p_y && p_y < l_y2 && ((l_x1 < p_x && p_x < l_x2) ||  (l_x3 < p_x && p_x < l_x4)) then
-      (char_of_int (p_x / !(p_params.cell_size) + int_of_char('A')), !(p_params.grid_size) - p_y / !(p_params.cell_size))
-    else
-      ('%', 0)
+    (char_of_int (p_x / !(p_params.cell_size) + int_of_char('A')), !(p_params.grid_size) - p_y / !(p_params.cell_size))
+  else
+    ('%', 0)
 ;;
 
 (**
@@ -420,22 +423,27 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
     (NONE, cell_of_pixel(l_px, l_py, p_params))
 ;;
 
-
-(* let init_battleship(p_params : t_params) : t_battleship = *)
-(*   let l_player_grid = generate_grid_matrix(!(p_params.grid_size)) *)
-(*   and l_computer_grid = generate_grid_matrix(!(p_params.grid_size)) *)
-(*   in *)
-(*   let l_player_ships = manual_placing_ships(!(p_params.ship_sizes), l_player_grid, p_params) *)
-(*   and l_computer_ships = auto_placing_ships(!(p_params.ship_sizes), l_computer_grid, p_params) *)
-(*   in *)
-(*   let battleship : t_battleship ={ *)
-(*     player_grid = l_player_grid;  *)
-(*     computer_grid = l_computer_grid; *)
-(*     player_ships = l_player_ships; *)
-(*     computer_ships = l_computer_ships; *)
-(*   } *)
-(*   in battleship *)
-(* ;; *)
+(**
+   Prend les paramètres du jeu, place les bateaux de l'ordi et permet au joueur de placer ses bateaux
+   @param p_params paramètres du jeu
+   @return Un [t_battleship] qui contient les grilles et les liste des bateaux du joueur et de l'ordi
+   @author Bentz Polo
+ *)
+let init_battleship(p_params : t_params) : t_battleship =
+  let l_player_grid = generate_grid_matrix(!(p_params.grid_size))
+  and l_computer_grid = generate_grid_matrix(!(p_params.grid_size))
+  in
+  let l_player_ships = manual_placing_ships(!(p_params.ship_sizes), l_player_grid, p_params)
+  and l_computer_ships = auto_placing_ships(!(p_params.ship_sizes), l_computer_grid, p_params)
+  in
+  let battleship : t_battleship ={
+    player_grid = l_player_grid; 
+    computer_grid = l_computer_grid;
+    player_ships = l_player_ships;
+    computer_ships = l_computer_ships;
+  }
+  in battleship
+;;
 
 (**
   Fonction principale du jeu. Lance la fenetre graphique et mets à jour le titre et
