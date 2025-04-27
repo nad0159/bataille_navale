@@ -41,6 +41,9 @@ type t_params = {
  @since version 2 *)
 type t_state = EMPTY | OCCUPIED | CLICKED | TOUCHED | DESTROYED ;;
 
+(** Type de direction pour les bateaux *)
+type t_direction = UP | DOWN | LEFT | RIGHT ;;
+
 (** Type représentant les cellules 
  @since version 2 *)
 type t_cell = {
@@ -214,28 +217,35 @@ let rec place_ship(p_positions, p_grid : (char * int) list * t_grid): unit =
 (**
 Calcule la liste des positions occupées par un bateau.
 @param p_start position de départ (colonne, ligne)
-@param p_dir direction du bateau ("H" ou "V")
+@param p_dir direction du bateau (type t_direction)
 @param p_length taille du bateau
 @return liste des positions occupées
 @author Nadia Mouacha
 @since version 2
 *)
-let rec positions_list(p_start, p_dir, p_length : (char * int) * string * int) : (char * int) list =
+let rec positions_list (p_start, p_dir, p_length  : (char * int) * t_direction * int) : (char * int) list =
   if p_length <= 0 then
     []
   else
-    let l_col : char = fst(p_start)
-    and l_row : int = snd(p_start) in
+    let l_col : char = fst (p_start)
+    and l_row : int = snd (p_start) in
 
-    let l_next_pos : (char * int) =
-      if p_dir = "H" then
-        (char_of_int (int_of_char l_col + 1), l_row)
-      else if p_dir = "V" then
+    let l_next_pos : char * int =
+      if p_dir = UP then
+        (l_col, l_row - 1)
+      else 
+        if p_dir = DOWN then
         (l_col, l_row + 1)
+      else 
+        if p_dir = LEFT then
+        (char_of_int (int_of_char l_col - 1), l_row)
+      else 
+        if p_dir = RIGHT then
+        (char_of_int (int_of_char l_col + 1), l_row)
       else
-        failwith "Direction invalide : doit être H ou V"
+        failwith "Direction invalide"
     in
-    p_start :: positions_list(l_next_pos, p_dir, p_length - 1)
+    p_start :: positions_list (l_next_pos, p_dir, (p_length - 1))
 ;;
 
 (**
