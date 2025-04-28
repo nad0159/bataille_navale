@@ -445,6 +445,79 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
     (NONE, cell_of_pixel(l_px, l_py, p_params))
 ;;
 
+(*
+let rec manual_placing_ship_list (p_ships, p_grid, p_params : (string * int) list * t_grid * t_params) : t_ship list =
+  if List.is_empty(p_ships) then
+    (* Tous les bateaux sont placés, retourner une liste vide *)
+    []
+  else
+    let (p_ship_name, p_ship_size) = List.hd(p_ships) in
+
+    (* Sous-fonction pour placer un bateau donné *)
+    let rec place_current_ship () : t_ship =
+      (* Demander au joueur de cliquer sur la première cellule *)
+      display_message(["Cliquez sur la premiere case du bateau : " ^ p_ship_name], p_params);
+      let (t_where1, t_start_pos) = read_mouse(p_params) in
+
+      if t_start_pos = ('%', 0) then
+        (display_message(["Erreur : Cliquez dans votre grille !"], p_params);
+         place_current_ship ())
+      else
+        begin
+          (* Colorier la première cellule sélectionnée *)
+          color_cell(t_start_pos, CPgraphics.yellow, p_params, JOUEUR);
+
+          (* Sous-fonction pour obtenir une direction correcte *)
+          let rec read_direction () : t_direction =
+            display_message(["Cliquez sur la deuxieme case pour determiner l'orientation"], p_params);
+            let (t_where2, t_end_pos) = read_mouse(p_params) in
+
+            if t_end_pos = ('%', 0) then
+              (display_message(["Erreur : Cliquez dans votre grille !"], p_params);
+               read_direction ())
+            else 
+              if fst(t_start_pos) = fst(t_end_pos) && snd(t_start_pos) < snd(t_end_pos) then
+                 DOWN
+              else
+                 if fst(t_start_pos) = fst(t_end_pos) && snd(t_start_pos) > snd(t_end_pos) then 
+                  UP
+                 else 
+                   if snd(t_start_pos) = snd(t_end_pos) && int_of_char(fst(t_start_pos)) < int_of_char(fst(t_end_pos)) then 
+                    RIGHT
+                  else 
+                    if snd(t_start_pos) = snd(t_end_pos) && int_of_char(fst(t_start_pos)) > int_of_char(fst(t_end_pos)) then 
+                      LEFT
+                    else
+              (display_message(["Erreur : Les deux cases doivent etre alignees horizontalement ou verticalement."], p_params);
+               read_direction ())
+          in
+
+          let t_dir = read_direction () in
+
+          (* Vérifier si le bateau peut être placé *)
+          if can_place_ship(t_start_pos, t_dir, p_ship_size, p_grid, p_params) then
+            let t_ship_positions = positions_list(t_start_pos, t_dir, p_ship_size) in
+
+            (* Colorier toutes les cellules du bateau en jaune *)
+            List.iter (fun t_pos -> color_cell(t_pos, CPgraphics.yellow, p_params, JOUEUR)) (t_ship_positions);
+
+            (* Marquer les cases occupées *)
+            place_ship(t_ship_positions, p_grid);
+
+            (* Retourner la structure du bateau *)
+            { name = p_ship_name; positions = t_ship_positions }
+          else
+            (display_message(["Erreur : Placement impossible a cet endroit."], p_params);
+             place_current_ship ())
+        end
+    in
+
+    (* Placer le bateau actuel puis continuer avec les suivants *)
+    let t_current_ship = place_current_ship () in
+    t_current_ship :: manual_placing_ship_list((List.tl(p_ships)), p_grid, p_params)
+;;
+*)
+
 (**
    Prend les paramètres du jeu, place les bateaux de l'ordi et permet au joueur de placer ses bateaux
    @param p_params paramètres du jeu
