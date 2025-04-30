@@ -58,11 +58,11 @@ type t_ship = {
   name : string;
   positions : (char * int) list;
 } ;;
-
+(** Type pour représenter l'orientation du bateau *)
 type t_direction = UP | DOWN | LEFT | RIGHT ;;
 
 (* Type pour déterminer la grille ou le joueur a cliqué
- @since version 3*)
+ @since version 3 *)
 type t_where = ORDINATEUR | JOUEUR | NONE ;;
 
 (* Définition du type structuré t_battleship
@@ -373,7 +373,7 @@ let display_grid(p_ships, p_grid , p_params, p_player: t_ship list * t_grid * t_
 
 (* ITERATION 3 *)
 
-(* Implementation provisoire en attendant celle de Nadia *)
+(* HACK: Implementation provisoire en attendant celle de Nadia *)
 (**
 Affiche des messages au joueur.
 @param p_message chaine de charactère qu'il faudra afficher au joueur.
