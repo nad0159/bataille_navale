@@ -445,78 +445,99 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
     (NONE, cell_of_pixel(l_px, l_py, p_params))
 ;;
 
-(*
-let rec manual_placing_ship_list (p_ships, p_grid, p_params : (string * int) list * t_grid * t_params) : t_ship list =
-  if List.is_empty(p_ships) then
-    (* Tous les bateaux sont placés, retourner une liste vide *)
-    []
-  else
-    let (p_ship_name, p_ship_size) = List.hd(p_ships) in
+(*Itération 4*)
 
-    (* Sous-fonction pour placer un bateau donné *)
-    let rec place_current_ship () : t_ship =
-      (* Demander au joueur de cliquer sur la première cellule *)
-      display_message(["Cliquez sur la premiere case du bateau : " ^ p_ship_name], p_params);
-      let (t_where1, t_start_pos) = read_mouse(p_params) in
+(**
+   Recherche tous les bateaux ayant au moins une de leurs cases touchée.
+   @param p_ships liste des bateaux placés
+   @param p_grid grille du jeu
+   @return Liste des bateaux touchés (au moins une case touchée)
+   @author Niang Zeinebou
+*)
+let find_ship (p_ships , p_grid : t_ship list * t_grid) : t_ship list =
+  (* iste vide pour stocker les bateaux touchés *)
+  let l_touched_ships = ref [] in
 
-      if t_start_pos = ('%', 0) then
-        (display_message(["Erreur : Cliquez dans votre grille !"], p_params);
-         place_current_ship ())
-      else
-        begin
-          (* Colorier la première cellule sélectionnée *)
-          color_cell(t_start_pos, CPgraphics.yellow, p_params, JOUEUR);
+  (* Compte le nombre de bateaux *)
+  let l_nb_ships = List.length (p_ships) in
 
-          (* Sous-fonction pour obtenir une direction correcte *)
-          let rec read_direction () : t_direction =
-            display_message(["Cliquez sur la deuxieme case pour determiner l'orientation"], p_params);
-            let (t_where2, t_end_pos) = read_mouse(p_params) in
+  (* Parcours les bateaux un par un *)
+  let i = ref 0 in
+  while (!i < l_nb_ships) do
+    (* Prend le bateau numéro i *)
+    let l_ship = List.nth p_ships (!i) in
 
-            if t_end_pos = ('%', 0) then
-              (display_message(["Erreur : Cliquez dans votre grille !"], p_params);
-               read_direction ())
-            else 
-              if fst(t_start_pos) = fst(t_end_pos) && snd(t_start_pos) < snd(t_end_pos) then
-                 DOWN
-              else
-                 if fst(t_start_pos) = fst(t_end_pos) && snd(t_start_pos) > snd(t_end_pos) then 
-                  UP
-                 else 
-                   if snd(t_start_pos) = snd(t_end_pos) && int_of_char(fst(t_start_pos)) < int_of_char(fst(t_end_pos)) then 
-                    RIGHT
-                  else 
-                    if snd(t_start_pos) = snd(t_end_pos) && int_of_char(fst(t_start_pos)) > int_of_char(fst(t_end_pos)) then 
-                      LEFT
-                    else
-              (display_message(["Erreur : Les deux cases doivent etre alignees horizontalement ou verticalement."], p_params);
-               read_direction ())
-          in
+    (* Variable pour savoir si ce bateau est touché ou pas *)
+    let l_touched = ref false in
 
-          let t_dir = read_direction () in
+    (* Compter combien de cases il a *)
+    let l_nb_positions = List.length (l_ship.positions) in
 
-          (* Vérifier si le bateau peut être placé *)
-          if can_place_ship(t_start_pos, t_dir, p_ship_size, p_grid, p_params) then
-            let t_ship_positions = positions_list(t_start_pos, t_dir, p_ship_size) in
+    (* Parcourir toutes les positions du bateau *)
+    let j = ref 0 in
+    while (!j < l_nb_positions) do
+      (* Prendre la position numéro j *)
+      let (l_col, l_row) = List.nth (l_ship.positions) (!j) in
 
-            (* Colorier toutes les cellules du bateau en jaune *)
-            List.iter (fun t_pos -> color_cell(t_pos, CPgraphics.yellow, p_params, JOUEUR)) (t_ship_positions);
+      (* cellule correspondante dans la grille *)
+      let l_cell = p_grid.(l_row - 1).(int_of_char (l_col) - int_of_char ('A')) in
 
-            (* Marquer les cases occupées *)
-            place_ship(t_ship_positions, p_grid);
+      (* Si la cellule est touchée le bateau est touché *)
+      if (!(l_cell.state) = TOUCHED) then
+        l_touched := true;
 
-            (* Retourner la structure du bateau *)
-            { name = p_ship_name; positions = t_ship_positions }
-          else
-            (display_message(["Erreur : Placement impossible a cet endroit."], p_params);
-             place_current_ship ())
-        end
+      (* Passe à la prochaine case *)
+      j := !j + 1
+    done;
+
+    (* Après avoir vérifié toutes les cases du bateau *)
+    if (!l_touched) then
+      l_touched_ships := l_ship :: !l_touched_ships;
+
+    (* Passe au prochain bateau et refait tout le processus *)
+    i := !i + 1
+  done;
+
+  (* Retourner la liste des bateaux touchés *)
+  !l_touched_ships
+;;
+
+
+let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
+  (* Lis où le joueur clique *)
+  let (l_player, l_coords) = read_mouse(p_params)
+  in
+
+  (* Vérifie si le clic est sur la grille de l'ordinateur *)
+  if (l_player = ORDINATEUR) then
+    (* Récupère la colonne et la ligne *)
+    let l_col = fst(l_coords)
+    and l_row = snd(l_coords)
     in
 
-    (* Placer le bateau actuel puis continuer avec les suivants *)
-    let t_current_ship = place_current_ship () in
-    t_current_ship :: manual_placing_ship_list((List.tl(p_ships)), p_grid, p_params)
+    (* Vérifie si les coordonnées sont valides *)
+    if (l_col <> '%') then
+      (* Récupère la cellule correspondante dans la grille *)
+      let l_cell = p_grid.(l_row - 1).(int_of_char(l_col) - int_of_char('A'))
+      in
+
+      (* Vérifie si la cellule contient un bateau *)
+      if (!(l_cell.state) = OCCUPIED) then
+        (* Marque la cellule comme touchée et colore en rouge *)
+        (l_cell.state := TOUCHED;
+         color_cell((l_col, l_row), CPgraphics.red, p_params, ORDINATEUR))
+      else
+        (* Marque la cellule comme cliquée et colorie en vert vu qu'elle ne contient pas de bateau *)
+        (l_cell.state := CLICKED;
+         color_cell((l_col, l_row), CPgraphics.green, p_params, ORDINATEUR))
+    else
+      (* les coordonnées sont invalides le joueur recommence *)
+      player_shoot(p_grid,p_params)
+  else
+    (* le joueur n'a pas cliqué sur la bonne grille et doit recommencer *)
+    player_shoot(p_grid,p_params)
 ;;
-*)
+
 
 (**
    Prend les paramètres du jeu, place les bateaux de l'ordi et permet au joueur de placer ses bateaux
