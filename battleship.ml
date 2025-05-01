@@ -502,7 +502,16 @@ let find_ship (p_ships , p_grid : t_ship list * t_grid) : t_ship list =
   !l_touched_ships
 ;;
 
-
+(**
+  Permet au joueur de tirer sur la grille de l'ordinateur.
+  Si le joueur clique en dehors ou sur une mauvaise grille, il doit recommencer.
+  Si clic sur un bateau : état TOUCHED et couleur rouge.
+  Si clic sur vide : état CLICKED et couleur verte.
+  @param p_grid la grille de l'ordinateur
+  @param p_params les paramètres du jeu
+  @author Niang Zeinebou
+  @return unit
+*)
 let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
   (* Lis où le joueur clique *)
   let (l_player, l_coords) = read_mouse(p_params)
