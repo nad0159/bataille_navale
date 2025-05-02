@@ -372,6 +372,143 @@ let display_grid(p_ships, p_grid , p_params, p_player: t_ship list * t_grid * t_
 ;;
 
 (* ITERATION 3 *)
+(**
+
+Modifier la fonction display_grid (à l'itération 2)
+Affiche toute la grille selon l’état de chaque cellule.
+Si le joueur est JOUEUR, les bateaux sont affichés en gris.
+Sinon, seuls les effets des tirs sont visibles.
+@param p_ships Liste des bateaux (non utilisée ici mais conservée pour compatibilité).
+@param p_grid Matrice des cellules du jeu.
+@param p_params Paramètres du jeu.
+@param p_player JOUEUR ou ORDINATEUR.
+@author Nadia MOUACHA
+*)
+let display_grid (p_ships, p_grid, p_params, p_player : t_ship list * t_grid * t_params * t_where) : unit =
+  for i = 0 to Array.length p_grid - 1 do
+    for j = 0 to Array.length p_grid.(i) - 1 do
+      let cell = p_grid.(i).(j) in
+      let color =
+        if !(cell.state) = EMPTY then
+          CPgraphics.white
+        else if !(cell.state) = OCCUPIED then
+          if p_player = JOUEUR then CPgraphics.grey else CPgraphics.white
+        else if !(cell.state) = CLICKED then
+          CPgraphics.blue
+        else if !(cell.state) = TOUCHED then
+          CPgraphics.orange
+        else if !(cell.state) = DESTROYED then
+          CPgraphics.red
+        else
+          CPgraphics.white  (* Couleur par défaut si l'état est inconnu *)
+      in
+      color_cell (cell.coord, color, p_params, p_player)
+    done
+  done
+;;
+
+
+(**
+  Retourne la liste des positions voisines (haut, bas, gauche, droite)
+  autour de la position [pos], en s'assurant qu'elles restent dans les limites de la grille.
+
+  @param pos La position centrale sous forme de couple (colonne, ligne).
+  @return Une liste de positions voisines directement adjacentes dans la grille.
+          Les positions retournées sont toujours valides (entre 'A' et 'J', lignes 0 à 9).
+  @author Nadia MOUACHA
+*)
+let get_neighbors (p_pos : char * int) : (char * int) list =
+  let (col, row) : char * int = p_pos in
+  let l_col_code : int  = int_of_char col in
+  let l_neighbors : (char * int) list ref = ref [] in
+
+  (* gauche *)
+  if l_col_code > int_of_char 'A' then
+    l_neighbors := (char_of_int (l_col_code - 1), row) :: !l_neighbors;
+
+  (* droite *)
+  if l_col_code < int_of_char 'A' + 9 then
+    l_neighbors := (char_of_int (l_col_code + 1), row) :: !l_neighbors;
+
+  (* haut *)
+  if row > 0 then
+    l_neighbors := (col, row - 1) :: !l_neighbors;
+
+  (* bas *)
+  if row < 9 then
+    l_neighbors := (col, row + 1) :: !l_neighbors;
+
+  !l_neighbors
+;;
+
+(**
+  Fait couler un bateau : met toutes les cellules connectées à celle de départ
+  à l'état DESTROYED (coulé) si elles sont à l'état TOUCHED.
+
+  @param p_position Coordonnées de la cellule de départ.
+  @param p_grid Grille contenant les cellules.
+  @param p_params Paramètres du jeu.
+  @author Nadia MOUACHA
+*)
+let sink_ship (p_position, p_grid, p_params : (char * int) * t_grid * t_params) : unit =
+  let rec sink_ship_rec (position : char * int) : unit =
+    let (col,row) : char * int = position in
+    let (col_index, row_index ) : int * int = cell_index (col, row) in
+    let cell : t_cell = p_grid.(row_index).(col_index) in
+
+    if !(cell.state) = TOUCHED then (
+      cell.state := DESTROYED;
+      CPgraphics.set_color CPgraphics.red;  
+
+    )
+    else (
+      (* Si la cellule n'est pas touchée on fait rien *)
+      ()
+    );
+
+    let neighbors : (char * int) list = get_neighbors (col, row) in
+    
+    for i = 0 to List.length neighbors - 1 do
+      let (n_col, n_row ): char * int = List.nth neighbors i in
+      sink_ship_rec (n_col, n_row)
+    done
+  in
+  sink_ship_rec (p_position)
+;;
+battles_3.ml
+5 Ko
+(*iteration 3*)
+
+(**
+Affiche le message en dessous de la grille 
+ @param p_params Structure contenant les paramètres du jeu (la marge, la taille des cellules, la taille de la zone de message, la taille de la grille, et les tailles des bateaux.)
+ @param p_message liste des caratctère representent les messages 
+ @author Nadia MOUACHA
+*)
+let display_message (p_params, p_message: t_params * string list) : unit =
+  (* Effacer la zone bleue *)
+  let l_width : int = 2 * !(p_params.cell_size) * !(p_params.grid_size) + 3 * !(p_params.margin) and l_height : int = !(p_params.message_size) in
+  CPgraphics.set_color (CPgraphics.white);
+  CPgraphics.fill_rect (0, 0, l_width, l_height);
+
+  (* le texte *)
+  CPgraphics.set_color (CPgraphics.black);
+  CPgraphics.set_text_size (20);
+
+  (* Coordonnées de départ *)
+  let start_x : int = !(p_params.margin) and  start_y : int = 5 and line_height : int = 25 in
+
+
+  (* Affichage des messages *)
+  for i = 0 to List.length p_message - 1 do
+    CPgraphics.moveto (start_x, start_y + i * line_height);
+    CPgraphics.draw_string (List.nth p_message i)
+  done
+;;
+
+display_message (params, ["Bienvenue dans la bataille navale !"; "Cliquez sur une case pour tirer."]);;
+ignore (read_key ());;
+close_graph ();;
 
 (* HACK: Implementation provisoire en attendant celle de Nadia *)
 (**
