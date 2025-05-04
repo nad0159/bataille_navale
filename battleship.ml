@@ -589,6 +589,7 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
   @param p_grid Grille de jeu
   @param p_params Paramètres du jeu pour lire où le joueur a cliqué
   @return Le bateau touché ou un bateau vide si rien n'est touché
+  @author Niang Zeienebou
 *)
 let find_ship (p_ships, p_grid, p_params : t_ship list * t_grid * t_params) : t_ship =
   (* Crée un bateau vide (au cas où rien n'est touché) *)
@@ -691,6 +692,65 @@ let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
   else
     (* le joueur n'a pas cliqué sur la bonne grille et doit recommencer *)
     player_shoot(p_grid,p_params)
+;;
+
+(*Itération 5*) 
+(**
+  Permet à l'ordinateur de tirer sur la grille du joueur.
+  Utilise cell_to_pixel et color_cell pour gérer l'affichage.
+  @param p_player_grid La grille du joueur
+  @param p_params Les paramètres du jeu
+  @author Niang Zeinebou
+*)
+let computer_shoot (p_player_grid, p_params : t_grid * t_params) : unit =
+  (* Variables pour stocker la position du tir *)
+  let l_col = ref 'A' in
+  let l_row = ref 1 in
+
+  (* Variable pour vérifier si le tir est valide *)
+  let l_valid_shot = ref false in
+
+  (* Boucle pour choisir une case non déjà touchée ou cliquée *)
+  while (!l_valid_shot = false) do
+    (* Choisi une colonne entre 'A' et 'J' *)
+    l_col := char_of_int (int_of_char 'A' + Random.int (10));
+
+    (* Choisi une ligne entre 1 et 10 *)
+    l_row := 1 + Random.int (10);
+
+    (* Récupére la cellule correspondante *)
+    let l_cell = p_player_grid.(!l_row - 1).(int_of_char (!l_col) - int_of_char ('A')) in
+
+    (* Vérifie que la cellule n'a pas encore été jouée *)
+    if (!(l_cell.state) <> TOUCHED && !(l_cell.state) <> CLICKED) then
+      l_valid_shot := true
+  done;
+
+  (* Une cellule valide a été trouvée *)
+
+  (* Récupére la cellule choisie *)
+  let l_final_cell = p_player_grid.(!l_row - 1).(int_of_char (!l_col) - int_of_char ('A')) in
+
+  (* Coordonnées  de la cellule *)
+  let l_coord = (!l_col, !l_row) in
+
+  (* Si la cellule contient un bateau *)
+  if (!(l_final_cell.state) = OCCUPIED) then
+    (
+      (* Marquer la cellule comme touchée *)
+      l_final_cell.state := TOUCHED;
+
+      (* Colorie la cellule en rouge *)
+      color_cell(l_coord, CPgraphics.red, p_params, JOUEUR)
+    )
+  else
+    (
+      (* Sinon marquer la cellule comme cliquée *)
+      l_final_cell.state := CLICKED;
+
+      (* Colorie la cellule en vert *)
+      color_cell(l_coord, CPgraphics.green, p_params, JOUEUR)
+    )
 ;;
 
 
