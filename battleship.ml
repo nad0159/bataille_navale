@@ -534,18 +534,36 @@ Affiche des messages au joueur.
    @return Un couple (char, int) qui sont les coordonnées de la cellule cliqué
           renvoi les valeurs ('%', 0) pour un pixel hors grille
    @author Bentz POLO
+   @since version 3
    *)
 let cell_of_pixel(p_x, p_y, p_params : int * int * t_params) : char * int =
+  (* Coordonnées du pixel inférieur gauche de la première grille *)
   let l_y1 : int = !(p_params.margin) + !(p_params.message_size)
   and l_x1 : int = !(p_params.margin) + !(p_params.cell_size)
   in
+  (* l_x2 est la coordonée de fin de la première grille *)
   let l_x2 : int = l_x1 + !(p_params.grid_size) * !(p_params.cell_size)
-  and l_y2 : int = l_y1 + !(p_params.grid_size) * !(p_params.cell_size) + !(p_params.cell_size)
-  in let l_x3 : int = l_x2 + !(p_params.margin)
+  (* l_y2 est le haut des grilles *)
+  and l_y2 : int = l_y1 + !(p_params.grid_size) * !(p_params.cell_size)
+  (* l_x3 est le début de la seconde grille *)
+  in let l_x3 : int = l_x2 + !(p_params.margin) + !(p_params.cell_size)
+  (* l_x4 est la fin de la seconde grille *)
   in let l_x4 : int = l_x3 + !(p_params.grid_size) * !(p_params.cell_size)
   in
-  if l_y1 < p_y && p_y < l_y2 && ((l_x1 < p_x && p_x < l_x2) ||  (l_x3 < p_x && p_x < l_x4)) then
-    (char_of_int (p_x / !(p_params.cell_size) + int_of_char('A')), !(p_params.grid_size) - p_y / !(p_params.cell_size))
+  if p_y > l_y1 && p_y < l_y2 then
+    if (p_x > l_x1 && p_x < l_x2) then
+      let l_rx = char_of_int((p_x - l_x1) / !(p_params.cell_size) + 65)
+      and l_ry = !(p_params.grid_size) - (p_y - l_y1) / !(p_params.cell_size)
+      in
+      (l_rx, l_ry)
+    else
+    if (p_x > l_x3 && p_x < l_x4 ) then
+      let l_rx = char_of_int((p_x - l_x3) / !(p_params.cell_size) + 65)
+      and l_ry = !(p_params.grid_size) - (p_y - l_y1) / !(p_params.cell_size)
+      in
+      (l_rx, l_ry)
+    else
+      ('%', 0)
   else
     ('%', 0)
 ;;
@@ -555,14 +573,20 @@ let cell_of_pixel(p_x, p_y, p_params : int * int * t_params) : char * int =
    @param p_params paramètres du jeu
    @return La grille ainsi que les coordonné de la cellule cliquée
    @author Bentz Polo
+   @since version 3
    *)
 let read_mouse (p_params : t_params) : t_where * (char * int) =
   let (l_px, l_py) : int * int = CPgraphics.wait_button_down()
   and l_y1 : int = !(p_params.margin) + !(p_params.message_size)
   and l_x1 : int = !(p_params.margin) + !(p_params.cell_size)
-  in let l_x2 : int = l_x1 + !(p_params.grid_size) * !(p_params.cell_size)
-  and l_y2 : int = l_y1 + !(p_params.grid_size) * !(p_params.cell_size) + !(p_params.cell_size)
-  in let l_x3 : int = l_x2 + !(p_params.margin)
+  in
+  (* l_x2 est la coordonée de fin de la première grille *)
+  let l_x2 : int = l_x1 + !(p_params.grid_size) * !(p_params.cell_size)
+  (* l_y2 est le haut des grilles *)
+  and l_y2 : int = l_y1 + !(p_params.grid_size) * !(p_params.cell_size)
+  (* l_x3 est le début de la seconde grille *)
+  in let l_x3 : int = l_x2 + !(p_params.margin) + !(p_params.cell_size)
+  (* l_x4 est la fin de la seconde grille *)
   in let l_x4 : int = l_x3 + !(p_params.grid_size) * !(p_params.cell_size)
   in
   if l_y1 < l_py && l_py < l_y2 then
