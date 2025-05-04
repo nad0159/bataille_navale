@@ -790,6 +790,29 @@ let update_grid(p_coord, p_state, p_grid : (char * int) * t_state * t_grid) : un
   p_grid.(l_arr).(l_i).state := p_state
 ;;
 
+(** Vérifie si un bateau est coulé (toute ses positions sont touchées)
+ @param p_ship bateau
+ @param grille où se trouve le bateau
+ @return true si le bateau est coulée false sinon
+ @author Bentz Polo
+ @since version 4
+ *)
+let rec check_sunk_ship(p_ship, p_grid : t_ship * t_grid) : bool =
+  if List.is_empty(p_ship.positions) then
+    true
+  else
+    let (l_i, l_arr) = cell_index(List.hd(p_ship.positions))
+    in
+    if !(p_grid.(l_arr).(l_i).state) <> TOUCHED
+       || !(p_grid.(l_arr).(l_i).state) <> DESTROYED then
+         false
+    else
+      (* variable intermediaire pour le prochain appel*)
+      let new_ship : t_ship = {name = p_ship.name; 
+                               positions = List.tl(p_ship.positions)}
+      in
+      check_sunk_ship(new_ship, p_grid)
+;;
 (** 
    Permet au joueur de tirer sur la grille de l'ordinateur.
    Attend que le joueur clique sur une cellule de la bonne grille, 
