@@ -710,6 +710,7 @@ done ; snd(!l_click)
   @param p_params Paramètres du jeu pour lire où le joueur a cliqué
   @return Le bateau touché ou un bateau vide si rien n'est touché
   @author Niang Zeienebou
+  @since version 4
 *)
 let find_ship (p_ships, p_grid, p_params : t_ship list * t_grid * t_params) : t_ship =
   (* Crée un bateau vide (au cas où rien n'est touché) *)
@@ -769,6 +770,19 @@ let find_ship (p_ships, p_grid, p_params : t_ship list * t_grid * t_params) : t_
   !l_found_ship
 ;;
 
+(** Prend en etrée un cellule et met à jour son état dans la grille
+    @param p_coord coordonée grqphique de la cellule
+    @param p_state état à modifier
+    @param p_grid matrice où se trouve la cellule à modifier
+    @author Bentz Polo
+    @since version 4
+ *)
+let update_grid(p_coord, p_state, p_grid : (char * int) * t_state * t_grid) : unit =
+  let (l_i, l_arr) : int * int = cell_index(p_coord)
+  in
+  p_grid.(l_arr).(l_i).state := p_state
+;;
+
 (**
   Permet au joueur de tirer sur la grille de l'ordinateur.
   Si le joueur clique en dehors ou sur une mauvaise grille, il doit recommencer.
@@ -777,6 +791,7 @@ let find_ship (p_ships, p_grid, p_params : t_ship list * t_grid * t_params) : t_
   @param p_grid la grille de l'ordinateur
   @param p_params les paramètres du jeu
   @author Niang Zeinebou
+  @since version 4
   @return unit
 *)
 let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
@@ -821,6 +836,7 @@ let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
   @param p_player_grid La grille du joueur
   @param p_params Les paramètres du jeu
   @author Niang Zeinebou
+  @since version 5
 *)
 let computer_shoot (p_player_grid, p_params : t_grid * t_params) : unit =
   (* Variables pour stocker la position du tir *)
@@ -878,6 +894,7 @@ let computer_shoot (p_player_grid, p_params : t_grid * t_params) : unit =
    Prend les paramètres du jeu, place les bateaux de l'ordi et permet au joueur de placer ses bateaux
    @param p_params paramètres du jeu
    @return Un [t_battleship] qui contient les grilles et les liste des bateaux du joueur et de l'ordi
+   @since version 3
    @author Bentz Polo
  *)
 let init_battleship(p_params : t_params) : t_battleship =
