@@ -5,7 +5,7 @@ rendre en fin de semestre pour l'année de {i L1
 @version 2
 @author Bentz POLO
 @author Nadia MOUACHA
-@author Zeneibou NIANG
+@author Zeinebou NIANG
 @author Younes ETTABAA
 *)
 (* open CPgraphics *)
@@ -58,7 +58,8 @@ type t_ship = {
   name : string;
   positions : (char * int) list;
 } ;;
-(** Type pour représenter l'orientation du bateau *)
+(** Type pour représenter l'orientation du bateau
+ @since version 2 *)
 type t_direction = UP | DOWN | LEFT | RIGHT ;;
 
 (* Type pour déterminer la grille ou le joueur a cliqué
@@ -166,7 +167,8 @@ let display_empty_grids(p_size, p_cell_size, p_margin, p_message_size : int * in
 (**
  Facilite l'indexage de la matrice pour accéder à une cellule.
  @param p_grid_coords coordonnée sur la grille graphique
- @return un couple d'entier. Le second représente le tableau où se trouve la cellule et le premier représente son index dans ce tableau.
+ @return un couple d'entier. Le second représente le tableau où se trouve la cellule ( la rangée )
+ et le premier représente son index dans ce tableau ( la colonne ).
  @author Bentz POLO
  @since version 2
  *)
@@ -200,7 +202,7 @@ let generate_grid_matrix(p_grid_size : int) : t_grid =
 (**
 Place un bateau sur la grille.
 @param p_positions cellules que doit bateau à placer.
-@p_grid grille dans où il faut placer le bateau.
+@param p_grid grille dans où il faut placer le bateau.
 @author Bentz POLO
 @since version 2
 *)
@@ -383,6 +385,7 @@ Sinon, seuls les effets des tirs sont visibles.
 @param p_params Paramètres du jeu.
 @param p_player JOUEUR ou ORDINATEUR.
 @author Nadia MOUACHA
+@since version 2
 *)
 let display_grid (p_grid, p_params, p_player : t_grid * t_params * t_where) : unit =
   for i = 0 to Array.length p_grid - 1 do
@@ -416,6 +419,7 @@ let display_grid (p_grid, p_params, p_player : t_grid * t_params * t_where) : un
   @return Une liste de positions voisines directement adjacentes dans la grille.
           Les positions retournées sont toujours valides (entre 'A' et 'J', lignes 0 à 9).
   @author Nadia MOUACHA
+  @since version 4
 *)
 let get_neighbors (p_pos : char * int) : (char * int) list =
   let (col, row) : char * int = p_pos in
@@ -449,6 +453,7 @@ let get_neighbors (p_pos : char * int) : (char * int) list =
   @param p_grid Grille contenant les cellules.
   @param p_params Paramètres du jeu.
   @author Nadia MOUACHA
+  @since version 4
 *)
 let sink_ship (p_position, p_grid, p_params : (char * int) * t_grid * t_params) : unit =
   let rec sink_ship_rec (position : char * int) : unit =
@@ -482,6 +487,7 @@ Affiche le message en dessous de la grille
  @param p_params Structure contenant les paramètres du jeu (la marge, la taille des cellules, la taille de la zone de message, la taille de la grille, et les tailles des bateaux.)
  @param p_message liste des caratctère representent les messages 
  @author Nadia MOUACHA
+ @since version 4
 *)
 let display_message (p_message, p_params: string list * t_params) : unit =
   (* Effacer la zone bleue *)
@@ -710,7 +716,7 @@ done ; snd(!l_click)
   @param p_grid Grille de jeu
   @param p_params Paramètres du jeu pour lire où le joueur a cliqué
   @return Le bateau touché ou un bateau vide si rien n'est touché
-  @author Niang Zeienebou
+  @author Niang Zeinebou
   @since version 4
 *)
 let find_ship (p_ships, p_grid, p_params : t_ship list * t_grid * t_params) : t_ship =
@@ -898,6 +904,7 @@ let init_battleship(p_params : t_params) : t_battleship =
   @since version 1
 *)
 let battleship_game() : unit =
+  (* Variable qui va contenir les paramètres de jeu *)
   let settings : t_params = {
     margin = {contents = 0};
     cell_size = {contents = 0};
@@ -906,15 +913,21 @@ let battleship_game() : unit =
     ship_sizes = {contents = []};
   }
   in
+  (* Initialisation des paramètres de jeu *)
   init_params(30, 15, 60, 10,
     [("Porte-avions", 5); ("Croiseur", 4); ("Contre-torpilleur", 3); ("Contre-torpilleur", 3); ("Torpilleur", 2)], settings);
-  Random.self_init();
-  CPgraphics.open_graph(410,290);
-  CPgraphics.set_window_title("Battleship Game");
+  Random.self_init(); (* Initialisation de random pour le jeu de l'ordinateur *)
+  CPgraphics.open_graph(410,290); (* Ouverture de la fenetre graphique *)
+  CPgraphics.set_window_title("Battleship Game"); (* Titre *)
+  (* Premier affichage, les noms des joueurs sont affichés, les grilles sont vides *)
   display_empty_grids(!(settings.grid_size), !(settings.cell_size), !(settings.margin), !(settings.message_size));
+  (* Initialisation des grilles des joueurs et placement de bateaux dans les grilles respectives *)
   let play_state = init_battleship(settings)
   in
-  color_cell(('D', 4), CPgraphics.yellow, settings, JOUEUR);
+  display_grid(play_state.player_grid, settings, JOUEUR);
+  display_grid(play_state.player_grid, settings, ORDINATEUR);
+  computer_shoot(play_state.player_grid, settings);
+  player_shoot(play_state.computer_grid, settings);
   display_grid(play_state.player_grid, settings, JOUEUR);
   display_grid(play_state.player_grid, settings, ORDINATEUR);
   CPgraphics.wait(600)
