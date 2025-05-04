@@ -703,6 +703,7 @@ done ; snd(!l_click)
 ;;
 
 (*Itération 4*)
+
 (**
   Cherche dans la liste des bateaux si un bateau a été touché à l'endroit où le joueur a cliqué.
   @param p_ships Liste des bateaux
@@ -783,110 +784,86 @@ let update_grid(p_coord, p_state, p_grid : (char * int) * t_state * t_grid) : un
   p_grid.(l_arr).(l_i).state := p_state
 ;;
 
-(**
-  Permet au joueur de tirer sur la grille de l'ordinateur.
-  Si le joueur clique en dehors ou sur une mauvaise grille, il doit recommencer.
-  Si clic sur un bateau : état TOUCHED et couleur rouge.
-  Si clic sur vide : état CLICKED et couleur verte.
-  @param p_grid la grille de l'ordinateur
-  @param p_params les paramètres du jeu
-  @author Niang Zeinebou
-  @since version 4
-  @return unit
+(** 
+   Permet au joueur de tirer sur la grille de l'ordinateur.
+   Attend que le joueur clique sur une cellule de la bonne grille, 
+   puis met à jour l'état de la cellule en fonction du contenu.
+   Si la cellule contient un bateau  elle passe à l'état TOUCHED.
+   Sinon elle passe à l'état CLICKED.
+   Si le clic est invalide la fonction redemande au joueur de cliquer.
+
+   @param p_grid grille de l'ordinateur
+   @param p_params paramètres du jeu
+   @author Niang Zeinebou
+   @since version 5
 *)
-let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
-  (* Lis où le joueur clique *)
-  let (l_player, l_coords) = read_mouse(p_params)
+let rec player_shoot (p_grid, p_params : t_grid * t_params) : unit =
+  (* Attend un clic du joueur *)
+  let (l_player, (l_col, l_row)) = read_mouse(p_params)
   in
 
-  (* Vérifie si le clic est sur la grille de l'ordinateur *)
+  (* Vérifie que le clic est sur la grille de l'ordinateur *)
   if (l_player = ORDINATEUR) then
-    (* Récupère la colonne et la ligne *)
-    let l_col = fst(l_coords)
-    and l_row = snd(l_coords)
-    in
-
-    (* Vérifie si les coordonnées sont valides *)
+    (* Vérifie que la colonne est correcte *)
     if (l_col <> '%') then
-      (* Récupère la cellule correspondante dans la grille *)
-      let l_cell = p_grid.(l_row - 1).(int_of_char(l_col) - int_of_char('A'))
-      in
+      (* Convertit les coordonnées pour accéder à la grille *)
+      let l_index_col = int_of_char(l_col) - int_of_char('A') in
+      let l_index_row = l_row - 1 in
 
-      (* Vérifie si la cellule contient un bateau *)
+      (* Récupère la cellule cliquée *)
+      let l_cell = p_grid.(l_index_row).(l_index_col) in
+
+      (* Si la cellule contient un bateau *)
       if (!(l_cell.state) = OCCUPIED) then
-        (* Marque la cellule comme touchée et colore en rouge *)
-        (l_cell.state := TOUCHED;
-         color_cell((l_col, l_row), CPgraphics.orange, p_params, ORDINATEUR))
+        (* Met à jour l'état à TOUCHED *)
+        update_grid((l_col, l_row), TOUCHED, p_grid)
       else
-        (* Marque la cellule comme cliquée et colorie en vert vu qu'elle ne contient pas de bateau *)
-        (l_cell.state := CLICKED;
-         color_cell((l_col, l_row), CPgraphics.green, p_params, ORDINATEUR))
+        (* Sinon met à jour à CLICKED *)
+        update_grid((l_col, l_row), CLICKED, p_grid)
     else
-      (* les coordonnées sont invalides le joueur recommence *)
-      player_shoot(p_grid,p_params)
+      (* Si le clic est en dehors grille on recommence *)
+      player_shoot(p_grid, p_params)
   else
-    (* le joueur n'a pas cliqué sur la bonne grille et doit recommencer *)
-    player_shoot(p_grid,p_params)
+    (* Si le clic est sur la mauvaise grille on recommence *)
+    player_shoot(p_grid, p_params)
 ;;
 
 (*Itération 5*) 
-(**
-  Permet à l'ordinateur de tirer sur la grille du joueur.
-  Utilise cell_to_pixel et color_cell pour gérer l'affichage.
-  @param p_player_grid La grille du joueur
-  @param p_params Les paramètres du jeu
-  @author Niang Zeinebou
-  @since version 5
-*)
+
+(** Permet à l'ordinateur d'effectuer un tir aléatoire sur la grille du joueur.
+    Tire sur une cellule non touchée ou cliquée et met à jour son état.
+
+    @param p_player_grid Grille du joueur
+    @param p_params Paramètres du jeu
+    @author Niang Zeinebou
+    @since version 4
+ *)
 let computer_shoot (p_player_grid, p_params : t_grid * t_params) : unit =
-  (* Variables pour stocker la position du tir *)
+  let l_valid_shot = ref false in
   let l_col = ref 'A' in
   let l_row = ref 1 in
 
-  (* Variable pour vérifier si le tir est valide *)
-  let l_valid_shot = ref false in
-
-  (* Boucle pour choisir une case non déjà touchée ou cliquée *)
+  (* Répète tant qu'une case libre n'a pas été trouvée *)
   while (!l_valid_shot = false) do
-    (* Choisi une colonne entre 'A' et 'J' *)
-    l_col := char_of_int (int_of_char 'A' + Random.int (10));
+    l_col := char_of_int (int_of_char 'A' + Random.int(10));
+    l_row := 1 + Random.int(10);
 
-    (* Choisi une ligne entre 1 et 10 *)
-    l_row := 1 + Random.int (10);
+    let l_cell = p_player_grid.(!l_row - 1).(int_of_char(!l_col) - int_of_char('A')) in
 
-    (* Récupére la cellule correspondante *)
-    let l_cell = p_player_grid.(!l_row - 1).(int_of_char (!l_col) - int_of_char ('A')) in
-
-    (* Vérifie que la cellule n'a pas encore été jouée *)
+    (* Si la cellule est disponible *)
     if (!(l_cell.state) <> TOUCHED && !(l_cell.state) <> CLICKED) then
       l_valid_shot := true
   done;
 
   (* Une cellule valide a été trouvée *)
-
-  (* Récupére la cellule choisie *)
-  let l_final_cell = p_player_grid.(!l_row - 1).(int_of_char (!l_col) - int_of_char ('A')) in
-
-  (* Coordonnées  de la cellule *)
   let l_coord = (!l_col, !l_row) in
+  let l_cell = p_player_grid.(!l_row - 1).(int_of_char(!l_col) - int_of_char('A')) in
 
-  (* Si la cellule contient un bateau *)
-  if (!(l_final_cell.state) = OCCUPIED) then
-    (
-      (* Marquer la cellule comme touchée *)
-      l_final_cell.state := TOUCHED;
-
-      (* Colorie la cellule en rouge *)
-      color_cell(l_coord, CPgraphics.red, p_params, JOUEUR)
-    )
+  (* Met à jour selon le contenu *)
+  if (!(l_cell.state) = OCCUPIED) then
+    update_grid(l_coord, TOUCHED, p_player_grid)
   else
-    (
-      (* Sinon marquer la cellule comme cliquée *)
-      l_final_cell.state := CLICKED;
-
-      (* Colorie la cellule en vert *)
-      color_cell(l_coord, CPgraphics.green, p_params, JOUEUR)
-    )
+    update_grid(l_coord, CLICKED, p_player_grid)
 ;;
 
 
