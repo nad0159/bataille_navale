@@ -360,16 +360,16 @@ Scanne la liste de bateau placés et colores le cases qu'ils occupents
 @author Bentz POLO
 @since version 2
 *)
-let display_grid(p_ships, p_grid , p_params, p_player: t_ship list * t_grid * t_params * t_where) : unit =
-  if p_player = ORDINATEUR then
-    ()
-  else
-    for i=0 to List.length(p_ships) - 1 do
-      for j=0 to List.length((List.nth p_ships i).positions) - 1 do
-        color_cell((List.nth (List.nth p_ships i).positions j), CPgraphics.grey, p_params, p_player)
-      done
-    done
-;;
+(*let display_grid(p_ships, p_grid , p_params, p_player: t_ship list * t_grid * t_params * t_where) : unit =*)
+(*  if p_player = ORDINATEUR then*)
+(*    ()*)
+(*  else*)
+(*    for i=0 to List.length(p_ships) - 1 do*)
+(*      for j=0 to List.length((List.nth p_ships i).positions) - 1 do*)
+(*        color_cell((List.nth (List.nth p_ships i).positions j), CPgraphics.grey, p_params, p_player)*)
+(*      done*)
+(*    done*)
+(*;;*)
 
 (* ITERATION 3 *)
 (**
@@ -384,7 +384,7 @@ Sinon, seuls les effets des tirs sont visibles.
 @param p_player JOUEUR ou ORDINATEUR.
 @author Nadia MOUACHA
 *)
-let display_grid (p_ships, p_grid, p_params, p_player : t_ship list * t_grid * t_params * t_where) : unit =
+let display_grid (p_grid, p_params, p_player : t_grid * t_params * t_where) : unit =
   for i = 0 to Array.length p_grid - 1 do
     for j = 0 to Array.length p_grid.(i) - 1 do
       let cell = p_grid.(i).(j) in
@@ -475,8 +475,6 @@ let sink_ship (p_position, p_grid, p_params : (char * int) * t_grid * t_params) 
   in
   sink_ship_rec (p_position)
 ;;
-battles_3.ml
-5 Ko
 (*iteration 3*)
 
 (**
@@ -485,7 +483,7 @@ Affiche le message en dessous de la grille
  @param p_message liste des caratctère representent les messages 
  @author Nadia MOUACHA
 *)
-let display_message (p_params, p_message: t_params * string list) : unit =
+let display_message (p_message, p_params: string list * t_params) : unit =
   (* Effacer la zone bleue *)
   let l_width : int = 2 * !(p_params.cell_size) * !(p_params.grid_size) + 3 * !(p_params.margin) and l_height : int = !(p_params.message_size) in
   CPgraphics.set_color (CPgraphics.white);
@@ -493,7 +491,7 @@ let display_message (p_params, p_message: t_params * string list) : unit =
 
   (* le texte *)
   CPgraphics.set_color (CPgraphics.black);
-  CPgraphics.set_text_size (20);
+  (*CPgraphics.set_text_size (20);*)
 
   (* Coordonnées de départ *)
   let start_x : int = !(p_params.margin) and  start_y : int = 5 and line_height : int = 25 in
@@ -506,10 +504,6 @@ let display_message (p_params, p_message: t_params * string list) : unit =
   done
 ;;
 
-display_message (params, ["Bienvenue dans la bataille navale !"; "Cliquez sur une case pour tirer."]);;
-ignore (read_key ());;
-close_graph ();;
-
 (* HACK: Implementation provisoire en attendant celle de Nadia *)
 (**
 Affiche des messages au joueur.
@@ -517,20 +511,20 @@ Affiche des messages au joueur.
 @param p_params paramètres du jeu.
 @author Bentz POLO
 *)
-let display_message(p_message, p_params : string list * t_params ) : unit =
-  let l_x : int = !(p_params.margin) + 2 * !(p_params.cell_size) * (!(p_params.grid_size) + 2) (* longueur de la zone d'affichage *)
-  and l_y : int = !(p_params.message_size) (* hauteur de la zone d'affichage *)
-  in
-  CPgraphics.moveto(!(p_params.margin), !(p_params.margin));
-  CPgraphics.set_color(CPgraphics.white);
-  CPgraphics.fill_rect(!(p_params.margin), !(p_params.margin), l_x, l_y);
-  (* CPgraphics.draw_rect(!(p_params.margin), !(p_params.margin), l_x, l_y); *)
-  CPgraphics.set_color(CPgraphics.black);
-  for i=0 to List.length(p_message) - 1 do
-    CPgraphics.moveto(!(p_params.margin),(!(p_params.margin) + l_y) - (i+2) * !(p_params.cell_size));
-    CPgraphics.draw_string(List.nth p_message i)
-  done
-;;
+(*let display_message(p_message, p_params : string list * t_params ) : unit =*)
+(*  let l_x : int = !(p_params.margin) + 2 * !(p_params.cell_size) * (!(p_params.grid_size) + 2) (* longueur de la zone d'affichage *)*)
+(*  and l_y : int = !(p_params.message_size) (* hauteur de la zone d'affichage *)*)
+(*  in*)
+(*  CPgraphics.moveto(!(p_params.margin), !(p_params.margin));*)
+(*  CPgraphics.set_color(CPgraphics.white);*)
+(*  CPgraphics.fill_rect(!(p_params.margin), !(p_params.margin), l_x, l_y);*)
+(*  (* CPgraphics.draw_rect(!(p_params.margin), !(p_params.margin), l_x, l_y); *)*)
+(*  CPgraphics.set_color(CPgraphics.black);*)
+(*  for i=0 to List.length(p_message) - 1 do*)
+(*    CPgraphics.moveto(!(p_params.margin),(!(p_params.margin) + l_y) - (i+2) * !(p_params.cell_size));*)
+(*    CPgraphics.draw_string(List.nth p_message i)*)
+(*  done*)
+(*;;*)
 
 (**
    Renvoi la cellule où se trouve un pixel donné
@@ -580,6 +574,108 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
       (NONE, cell_of_pixel(l_px, l_py, p_params))
   else
     (NONE, cell_of_pixel(l_px, l_py, p_params))
+;;
+
+(** Vérifie que 2 cellules sont voisines
+ @param p_cell1 coordonnées de la cellule 1 (départ)
+ @param p_cell2 coordonnées de la cellule 2 (arrivée)
+ @return un tableau de [t_cell]s. Peut renvoyer des voisins "imaginaires".
+ @since version 3
+ @author Bentz Polo
+ *)
+let cell_is_neighbour(p_cell1, p_cell2 : (char * int) * (char * int)) : bool =
+  let (l_x1, l_y1) : char * int = p_cell1
+  and (l_x2, l_y2) : char * int = p_cell2
+  in
+  (l_x1 = l_x2 && (l_y1 + 1 = l_y2 || l_y1 - 1 = l_y2)) (* voisin d'en haut ou d'en bas *)
+  ||
+  (l_y1 = l_y2 && (char_of_int(int_of_char(l_x1)+ 1) = l_x2 || char_of_int(int_of_char(l_x1) - 1) = l_x2)) (* voisin de gauche ou de droite *)
+;;
+
+(** Determine l'orientation d'une cellule par rapport à une autre 
+    @param p_cell1 coordonnée de la cellule 1
+    @param p_cell2 coordonnée de la cellule 2
+    @return l'orientation de [p_cell2] par rapport à [p_cell1]
+    @since version 3
+    @author Bentz Polo
+    *)
+let find_orientation(p_cell1, p_cell2 : (char * int) * (char * int)) : t_direction =
+  let (l_x1, l_y1) : char * int = p_cell1
+  and (l_x2, l_y2) : char * int = p_cell2
+  in
+  (* Si le point n'ont pas de coordonné commune cela veut dire qu'elle sont en diagonale *)
+  if l_x1 <> l_x2 && l_y1 <> l_y2 then
+    failwith "Error: Diagonal orientations not handled."
+  else
+    (* Si elles ont la meme abscisse, on compare leur ordonnée pour determine l'orientation*)
+    if l_x1 = l_x2 then
+      if l_y1 > l_y2 then
+        UP
+      else
+        DOWN
+    (* Si elles ont pas la meme ordonée, on compare les abscisses *)
+    else
+    if l_x1 > l_x2 then
+      LEFT
+    else
+      RIGHT
+;;
+
+(**
+ Permet au joueur de placer ses bateaux sur la grille
+ et renvoie la liste des bateaux placé
+ @param p_ship_list liste des bateau à placer 
+ @param p_grid grille où il faut placer les bateaux
+ @param p_params paramètres globaux du jeux
+ @since version 3
+ @return Une liste contenant les bateaux placés [t_ship]
+ @author Bentz Polo
+ *)
+let rec manual_placing_ships(p_ship_list, p_grid, p_params : (string * int) list * t_grid * t_params) : t_ship list =
+  if List.is_empty(p_ship_list) then
+    []
+  else
+    let l_click : (t_where * (char * int)) ref = display_message(["Placez vos bateaux:"; "Veuillez cliquer sur une case de votre grille"], p_params);
+    ref(read_mouse(p_params))
+  and l_valid_click : bool ref = ref false
+  in
+  (* Utilise une boucle qui s'arrete quand le joueur clique sur une case de sa grille *)
+  let l_cell1 = while not(!l_valid_click) do
+    if fst(!l_click) <> JOUEUR then
+      (display_message(["!! Veuillez cliquer dans votre grille !!"], p_params);
+                    l_click := read_mouse(p_params))
+  else
+    l_valid_click := true
+done ; snd(!l_click)
+    in
+  (* On colore la case qui vient d'etre cliquée *)
+  color_cell(l_cell1, CPgraphics.yellow, p_params, JOUEUR);
+  l_valid_click := false ; (* On réinitialise valid_click pour la prochaine boucle *)
+  l_click := ( display_message(["Cliquez sur un case adjacente pour terminer"], p_params); 
+               read_mouse(p_params) ); (* On attend le prochain click *)
+  (* Une boucle qui ne s'arrete pas tant que la case clique n'est pas un voisin de la première *)
+  let l_cell2 = while not(!l_valid_click) do
+    if fst(!l_click) <> JOUEUR then
+      ( display_message(["!! Veuillez cliquer sur une case de votre grille !!"], p_params);
+                      l_click := read_mouse(p_params))
+    else if not(cell_is_neighbour(l_cell1, snd(!l_click))) then
+      ( display_message(["!! Veuillez cliquer sur une case adjacente à la première !!"], p_params);
+                      l_click := read_mouse(p_params) )
+    else
+      l_valid_click := true
+  done; snd(!l_click)
+  in
+  let current_ship : t_ship = { name = fst(List.hd(p_ship_list));
+                                positions = positions_list(l_cell1, find_orientation(l_cell1, l_cell2), snd(List.hd(p_ship_list)))}
+  in
+  if can_place_ship(l_cell1, find_orientation(l_cell1, l_cell2), snd(List.hd(p_ship_list)), p_grid, p_params) then
+    ( place_ship(current_ship.positions, p_grid);
+      display_grid(p_grid, p_params, JOUEUR);
+      [current_ship] @ manual_placing_ships(List.tl(p_ship_list), p_grid, p_params) )
+  else
+    ( display_message(["Le bateau ne peut pas etre placé ainsi."], p_params);
+      display_grid(p_grid, p_params, JOUEUR);
+      manual_placing_ships(p_ship_list, p_grid, p_params) )
 ;;
 
 (*Itération 4*)
@@ -795,16 +891,14 @@ let battleship_game() : unit =
   init_params(30, 15, 60, 10,
     [("Porte-avions", 5); ("Croiseur", 4); ("Contre-torpilleur", 3); ("Contre-torpilleur", 3); ("Torpilleur", 2)], settings);
   Random.self_init();
-  let test_grid : t_grid = generate_grid_matrix(!(settings.grid_size))
-  in
   CPgraphics.open_graph(410,290);
   CPgraphics.set_window_title("Battleship Game");
-  (* NOTE: Pour l'instant set_text_size renvoit une erreur,
-  qui provient du fait qu'il ne trouve la police de caractère*)
-  (* CPgraphics.set_text_size( !(settings.cell_size) ); *)
   display_empty_grids(!(settings.grid_size), !(settings.cell_size), !(settings.margin), !(settings.message_size));
-  display_grid(auto_placing_ships(!(settings.ship_sizes), test_grid, settings), test_grid, settings, JOUEUR);
-  display_grid(auto_placing_ships(!(settings.ship_sizes), test_grid, settings), test_grid, settings, ORDINATEUR);
+  let play_state = init_battleship(settings)
+  in
+  color_cell(('D', 4), CPgraphics.yellow, settings, JOUEUR);
+  display_grid(play_state.player_grid, settings, JOUEUR);
+  display_grid(play_state.player_grid, settings, ORDINATEUR);
   CPgraphics.wait(600)
 ;;
 
