@@ -583,60 +583,69 @@ let read_mouse (p_params : t_params) : t_where * (char * int) =
 ;;
 
 (*Itération 4*)
-
 (**
-   Recherche tous les bateaux ayant au moins une de leurs cases touchée.
-   @param p_ships liste des bateaux placés
-   @param p_grid grille du jeu
-   @return Liste des bateaux touchés (au moins une case touchée)
-   @author Niang Zeinebou
+  Cherche dans la liste des bateaux si un bateau a été touché à l'endroit où le joueur a cliqué.
+  @param p_ships Liste des bateaux
+  @param p_grid Grille de jeu
+  @param p_params Paramètres du jeu pour lire où le joueur a cliqué
+  @return Le bateau touché ou un bateau vide si rien n'est touché
 *)
-let find_ship (p_ships , p_grid : t_ship list * t_grid) : t_ship list =
-  (* iste vide pour stocker les bateaux touchés *)
-  let l_touched_ships = ref [] in
+let find_ship (p_ships, p_grid, p_params : t_ship list * t_grid * t_params) : t_ship =
+  (* Crée un bateau vide (au cas où rien n'est touché) *)
+  let l_empty_ship : t_ship = {
+    name = ""; 
+    positions = []; 
+  } in
+
+  (* Lis le clic du joueur *)
+  let (l_where, (l_clicked_col, l_clicked_row)) = read_mouse(p_params) in
 
   (* Compte le nombre de bateaux *)
   let l_nb_ships = List.length (p_ships) in
 
-  (* Parcours les bateaux un par un *)
-  let i = ref 0 in
-  while (!i < l_nb_ships) do
-    (* Prend le bateau numéro i *)
-    let l_ship = List.nth p_ships (!i) in
+  (* Crée une variable pour stocker le bateau trouvé *)
+  let l_found_ship = ref l_empty_ship in
 
-    (* Variable pour savoir si ce bateau est touché ou pas *)
-    let l_touched = ref false in
+  (* Crée un compteur pour parcourir tous les bateaux *)
+  let l_i = ref 0 in
 
-    (* Compter combien de cases il a *)
-    let l_nb_positions = List.length (l_ship.positions) in
+  (* Tant qu'on n'a pas fini de parcourir tous les bateaux *)
+  while (!l_i < l_nb_ships) do
+    (* Prend le i-ème bateau *)
+    let l_current_ship = List.nth p_ships (!l_i) in
 
-    (* Parcourir toutes les positions du bateau *)
-    let j = ref 0 in
-    while (!j < l_nb_positions) do
-      (* Prendre la position numéro j *)
-      let (l_col, l_row) = List.nth (l_ship.positions) (!j) in
+    (* Compte combien de cases il occupe *)
+    let l_nb_positions = List.length (l_current_ship.positions) in
 
-      (* cellule correspondante dans la grille *)
-      let l_cell = p_grid.(l_row - 1).(int_of_char (l_col) - int_of_char ('A')) in
+    (* Crée un compteur pour parcourir toutes ses cases *)
+    let l_j = ref 0 in
 
-      (* Si la cellule est touchée le bateau est touché *)
-      if (!(l_cell.state) = TOUCHED) then
-        l_touched := true;
+    (* Tant qu'on n'a pas fini de vérifier toutes les cases du bateau *)
+    while (!l_j < l_nb_positions) do
+      (* Prend la j-ème position du bateau *)
+      let (l_ship_col, l_ship_row) = List.nth (l_current_ship.positions) (!l_j) in
 
-      (* Passe à la prochaine case *)
-      j := !j + 1
+      (* Vérifie si cette position est la même que celle cliquée *)
+      if (l_ship_col = l_clicked_col && l_ship_row = l_clicked_row) then
+        (* Prend la cellule correspondante dans la grille *)
+        let l_cell = p_grid.(l_ship_row - 1).(int_of_char (l_ship_col) - int_of_char ('A')) in
+
+        (* Vérifie si cette cellule a l'état TOUCHED *)
+        if (!(l_cell.state) = TOUCHED) then
+          (* Si oui on a trouvé le bateau *)
+          l_found_ship := l_current_ship;
+        ;
+
+      (* Passe à la prochaine case du bateau *)
+      l_j := !l_j + 1
     done;
 
-    (* Après avoir vérifié toutes les cases du bateau *)
-    if (!l_touched) then
-      l_touched_ships := l_ship :: !l_touched_ships;
-
-    (* Passe au prochain bateau et refait tout le processus *)
-    i := !i + 1
+    (* Passe au prochain bateau *)
+    l_i := !l_i + 1
   done;
 
-  (* Retourner la liste des bateaux touchés *)
-  !l_touched_ships
+  (* Retourner le bateau trouvé, ou un bateau vide si rien trouvé *)
+  !l_found_ship
 ;;
 
 (**
@@ -671,7 +680,7 @@ let rec player_shoot (p_grid , p_params : t_grid * t_params) : unit =
       if (!(l_cell.state) = OCCUPIED) then
         (* Marque la cellule comme touchée et colore en rouge *)
         (l_cell.state := TOUCHED;
-         color_cell((l_col, l_row), CPgraphics.red, p_params, ORDINATEUR))
+         color_cell((l_col, l_row), CPgraphics.orange, p_params, ORDINATEUR))
       else
         (* Marque la cellule comme cliquée et colorie en vert vu qu'elle ne contient pas de bateau *)
         (l_cell.state := CLICKED;
