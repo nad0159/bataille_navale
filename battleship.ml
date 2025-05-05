@@ -397,7 +397,7 @@ let display_grid (p_grid, p_params, p_player : t_grid * t_params * t_where) : un
         else if !(cell.state) = OCCUPIED then
           if p_player = JOUEUR then CPgraphics.grey else CPgraphics.white
         else if !(cell.state) = CLICKED then
-          CPgraphics.blue
+          CPgraphics.green
         else if !(cell.state) = TOUCHED then
           CPgraphics.orange
         else if !(cell.state) = DESTROYED then
@@ -813,49 +813,100 @@ let rec check_sunk_ship(p_ship, p_grid : t_ship * t_grid) : bool =
       in
       check_sunk_ship(new_ship, p_grid)
 ;;
-(** 
-   Permet au joueur de tirer sur la grille de l'ordinateur.
-   Attend que le joueur clique sur une cellule de la bonne grille, 
-   puis met à jour l'état de la cellule en fonction du contenu.
-   Si la cellule contient un bateau  elle passe à l'état TOUCHED.
-   Sinon elle passe à l'état CLICKED.
-   Si le clic est invalide la fonction redemande au joueur de cliquer.
 
-   @param p_grid grille de l'ordinateur
-   @param p_params paramètres du jeu
-   @author Niang Zeinebou
-   @since version 5
-*)
-let rec player_shoot (p_grid, p_params : t_grid * t_params) : unit =
-  (* Attend un clic du joueur *)
-  let (l_player, (l_col, l_row)) = read_mouse(p_params)
-  in
+(** @author Niang Zeinebou 
 
-  (* Vérifie que le clic est sur la grille de l'ordinateur *)
-  if (l_player = ORDINATEUR) then
-    (* Vérifie que la colonne est correcte *)
-    if (l_col <> '%') then
-      (* Convertit les coordonnées pour accéder à la grille *)
-      let l_index_col = int_of_char(l_col) - int_of_char('A') in
-      let l_index_row = l_row - 1 in
-
-      (* Récupère la cellule cliquée *)
-      let l_cell = p_grid.(l_index_row).(l_index_col) in
-
-      (* Si la cellule contient un bateau *)
-      if (!(l_cell.state) = OCCUPIED) then
-        (* Met à jour l'état à TOUCHED *)
-        update_grid((l_col, l_row), TOUCHED, p_grid)
-      else
-        (* Sinon met à jour à CLICKED *)
-        update_grid((l_col, l_row), CLICKED, p_grid)
-    else
-      (* Si le clic est en dehors grille on recommence *)
-      player_shoot(p_grid, p_params)
+ let rec check_sunk_ship (p_ship, p_grid : t_ship * t_grid) : bool =
+  (* Si la liste des positions du bateau est vide, alors tout a été vérifié et il est coulé *)
+  if List.is_empty(p_ship.positions) then
+    true
   else
-    (* Si le clic est sur la mauvaise grille on recommence *)
-    player_shoot(p_grid, p_params)
+    (* On récupère la position (colonne, ligne) de la première case du bateau *)
+    let (l_index_col, l_index_row) = cell_index (List.hd(p_ship.positions)) in
+    (* On récupère la cellule correspondante dans la grille *)
+    let l_cell = p_grid.(l_index_row).(l_index_col) in
+
+    (* Si cette cellule est TOUCHÉE ou DÉTRUITE, on continue à vérifier le reste du bateau *)
+    if !(l_cell.state) = TOUCHED || !(l_cell.state) = DESTROYED then
+      let l_new_ship : t_ship = {
+        name = p_ship.name;
+        positions = List.tl(p_ship.positions)  (* On enlève la position qu'on vient de vérifier *)
+      } in
+      check_sunk_ship (l_new_ship, p_grid)     (* Appel récursif sur le reste des positions *)
+    else
+      (* Si une case n'est ni TOUCHÉE ni DÉTRUITE, le bateau n'est pas encore coulé *)
+      false
 ;;
+*)
+(** 
+  Fonction récursive qui gère le tir du joueur humain sur la grille de l'ordinateur.
+  Elle attend que le joueur clique sur une cellule valide, traite le tir (touché, manqué ou déjà joué),
+  met à jour l'état de la grille, affiche les couleurs correspondantes et affiche les messages associés.
+
+  @param p_grid la grille de l'ordinateur (type t_grid) sur laquelle le joueur tire
+  @param p_ships la liste des bateaux de l'ordinateur (type t_ship list), pour vérifier s'ils sont coulés
+  @param p_params les paramètres du jeu 
+*)
+let rec player_shoot (p_grid, p_ships, p_params : t_grid * t_ship list * t_params) : unit =
+  let (l_where, (l_col, l_row)) = read_mouse(p_params) in
+
+  if l_where = ORDINATEUR && l_col <> '%' then
+    let (l_index_col, l_index_row) = cell_index((l_col, l_row)) in
+    let l_cell = p_grid.(l_index_row).(l_index_col) in
+
+    if !(l_cell.state) = CLICKED || !(l_cell.state) = TOUCHED then
+      (
+        (* La case a déjà été jouée *)
+        display_message(["!! Case déjà jouée !!"; "Veuillez cliquer ailleurs."], p_params);
+        player_shoot(p_grid, p_ships, p_params)
+      )
+    else
+      (
+        if !(l_cell.state) = OCCUPIED then
+          (
+            (* Touché *)
+            update_grid((l_col, l_row), TOUCHED, p_grid);
+            color_cell((l_col, l_row), CPgraphics.red, p_params, ORDINATEUR);
+
+            (* Chercher si un bateau est coulé *)
+            let l_i = ref 0 in
+            let l_boat_found = ref false in
+            while !l_i < List.length p_ships && not !l_boat_found do
+              let l_ship = List.nth p_ships !l_i in
+              if List.exists (fun l_pos -> l_pos = (l_col, l_row)) l_ship.positions then
+                (
+                  l_boat_found := true;
+                  if check_sunk_ship (l_ship, p_grid) then
+                    (
+                      sink_ship ((l_col, l_row), p_grid, p_params);
+                      display_message(["Bateau coulé !"], p_params)
+                    )
+                  else
+                    (
+                      display_message(["Touché !"], p_params)
+                    )
+                );
+              l_i := !l_i + 1
+            done;
+
+            if not !l_boat_found then
+              display_message(["Touché !"], p_params)
+          )
+        else
+          (
+            (* Manqué *)
+            update_grid((l_col, l_row), CLICKED, p_grid);
+            color_cell((l_col, l_row), CPgraphics.green, p_params, ORDINATEUR);
+            display_message(["Manqué !"], p_params)
+          )
+      )
+  else
+    (
+      display_message(["!! Cliquez dans la grille de l'ordinateur !!"], p_params);
+      player_shoot(p_grid, p_ships, p_params)
+    )
+;;
+
 
 (*Itération 5*) 
 
@@ -927,7 +978,7 @@ let init_battleship(p_params : t_params) : t_battleship =
   @since version 1
 *)
 let battleship_game() : unit =
-  (* Variable qui va contenir les paramètres de jeu *)
+  (* Initialisation de la structure des paramètres de jeu *)
   let settings : t_params = {
     margin = {contents = 0};
     cell_size = {contents = 0};
@@ -936,24 +987,44 @@ let battleship_game() : unit =
     ship_sizes = {contents = []};
   }
   in
-  (* Initialisation des paramètres de jeu *)
+  (* Remplissage des paramètres avec les vraies valeurs *)
   init_params(30, 15, 60, 10,
     [("Porte-avions", 5); ("Croiseur", 4); ("Contre-torpilleur", 3); ("Contre-torpilleur", 3); ("Torpilleur", 2)], settings);
-  Random.self_init(); (* Initialisation de random pour le jeu de l'ordinateur *)
-  CPgraphics.open_graph(410,290); (* Ouverture de la fenetre graphique *)
-  CPgraphics.set_window_title("Battleship Game"); (* Titre *)
-  (* Premier affichage, les noms des joueurs sont affichés, les grilles sont vides *)
+  (* Initialisation du générateur aléatoire pour l'ordinateur *)
+  Random.self_init(); 
+  (* Ouverture de la fenêtre graphique *)
+  CPgraphics.open_graph(410,290); 
+  (* Définition du titre de la fenêtre *)
+  CPgraphics.set_window_title("Battleship Game"); 
+  (* Affichage des grilles vides au début *)
   display_empty_grids(!(settings.grid_size), !(settings.cell_size), !(settings.margin), !(settings.message_size));
-  (* Initialisation des grilles des joueurs et placement de bateaux dans les grilles respectives *)
-  let play_state = init_battleship(settings)
+  (* Génération des matrices de grilles pour le joueur et l'ordinateur *)
+  let l_player_grid = generate_grid_matrix(!(settings.grid_size)) in
+  let l_computer_grid = generate_grid_matrix(!(settings.grid_size)) in
+  (* Placement manuel des bateaux du joueur *)
+  let l_player_ships = manual_placing_ships(!(settings.ship_sizes), l_player_grid, settings) in
+  (* Placement automatique des bateaux de l'ordinateur *)
+  let l_computer_ships = auto_placing_ships(!(settings.ship_sizes), l_computer_grid, settings) in
+  (* Création de l'état initial du jeu *)
+  let play_state : t_battleship = {
+    player_grid = l_player_grid;
+    computer_grid = l_computer_grid;
+    player_ships = l_player_ships;
+    computer_ships = l_computer_ships;
+  }
   in
+
+  (* Affichage de la grille du joueur *)
   display_grid(play_state.player_grid, settings, JOUEUR);
-  display_grid(play_state.player_grid, settings, ORDINATEUR);
+  (* Affichage de la grille de l'ordinateur *)
+  display_grid(play_state.computer_grid, settings, ORDINATEUR);
+  (* Premier tir automatique de l'ordinateur *)
   computer_shoot(play_state.player_grid, settings);
-  player_shoot(play_state.computer_grid, settings);
+  (* Premier tir du joueur *)
+  player_shoot(play_state.computer_grid, play_state.computer_ships, settings);
+  (* Réaffichage des grilles après les premiers tirs *)
   display_grid(play_state.player_grid, settings, JOUEUR);
-  display_grid(play_state.player_grid, settings, ORDINATEUR);
-  CPgraphics.wait(600)
+  display_grid(play_state.computer_grid, settings, ORDINATEUR)
 ;;
 
 (* Appel de la fonction principale pour lancer le jeu *)
