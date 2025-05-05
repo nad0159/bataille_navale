@@ -410,76 +410,6 @@ let display_grid (p_grid, p_params, p_player : t_grid * t_params * t_where) : un
   done
 ;;
 
-
-(**
-  Retourne la liste des positions voisines (haut, bas, gauche, droite)
-  autour de la position [pos], en s'assurant qu'elles restent dans les limites de la grille.
-
-  @param pos La position centrale sous forme de couple (colonne, ligne).
-  @return Une liste de positions voisines directement adjacentes dans la grille.
-          Les positions retournées sont toujours valides (entre 'A' et 'J', lignes 0 à 9).
-  @author Nadia MOUACHA
-  @since version 4
-*)
-let get_neighbors (p_pos : char * int) : (char * int) list =
-  let (col, row) : char * int = p_pos in
-  let l_col_code : int  = int_of_char col in
-  let l_neighbors : (char * int) list ref = ref [] in
-
-  (* gauche *)
-  if l_col_code > int_of_char 'A' then
-    l_neighbors := (char_of_int (l_col_code - 1), row) :: !l_neighbors;
-
-  (* droite *)
-  if l_col_code < int_of_char 'A' + 9 then
-    l_neighbors := (char_of_int (l_col_code + 1), row) :: !l_neighbors;
-
-  (* haut *)
-  if row > 0 then
-    l_neighbors := (col, row - 1) :: !l_neighbors;
-
-  (* bas *)
-  if row < 9 then
-    l_neighbors := (col, row + 1) :: !l_neighbors;
-
-  !l_neighbors
-;;
-
-(**
-  Fait couler un bateau : met toutes les cellules connectées à celle de départ
-  à l'état DESTROYED (coulé) si elles sont à l'état TOUCHED.
-
-  @param p_position Coordonnées de la cellule de départ.
-  @param p_grid Grille contenant les cellules.
-  @param p_params Paramètres du jeu.
-  @author Nadia MOUACHA
-  @since version 4
-*)
-let sink_ship (p_position, p_grid, p_params : (char * int) * t_grid * t_params) : unit =
-  let rec sink_ship_rec (position : char * int) : unit =
-    let (col,row) : char * int = position in
-    let (col_index, row_index ) : int * int = cell_index (col, row) in
-    let cell : t_cell = p_grid.(row_index).(col_index) in
-
-    if !(cell.state) = TOUCHED then (
-      cell.state := DESTROYED;
-      CPgraphics.set_color CPgraphics.red;  
-
-    )
-    else (
-      (* Si la cellule n'est pas touchée on fait rien *)
-      ()
-    );
-
-    let neighbors : (char * int) list = get_neighbors (col, row) in
-    
-    for i = 0 to List.length neighbors - 1 do
-      let (n_col, n_row ): char * int = List.nth neighbors i in
-      sink_ship_rec (n_col, n_row)
-    done
-  in
-  sink_ship_rec (p_position)
-;;
 (*iteration 3*)
 
 (**
@@ -487,7 +417,7 @@ Affiche le message en dessous de la grille
  @param p_params Structure contenant les paramètres du jeu (la marge, la taille des cellules, la taille de la zone de message, la taille de la grille, et les tailles des bateaux.)
  @param p_message liste des caratctère representent les messages 
  @author Nadia MOUACHA
- @since version 4
+ @since version 3
 *)
 let display_message (p_message, p_params: string list * t_params) : unit =
   (* Effacer la zone bleue *)
@@ -710,6 +640,78 @@ done ; snd(!l_click)
 
 (*Itération 4*)
 
+
+(**
+  Retourne la liste des positions voisines (haut, bas, gauche, droite)
+  autour de la position [pos], en s'assurant qu'elles restent dans les limites de la grille.
+
+  @param pos La position centrale sous forme de couple (colonne, ligne).
+  @return Une liste de positions voisines directement adjacentes dans la grille.
+          Les positions retournées sont toujours valides (entre 'A' et 'J', lignes 0 à 9).
+  @author Nadia MOUACHA
+  @since version 4
+*)
+let get_neighbors (p_pos : char * int) : (char * int) list =
+  let (col, row) : char * int = p_pos in
+  let l_col_code : int  = int_of_char col in
+  let l_neighbors : (char * int) list ref = ref [] in
+
+  (* gauche *)
+  if l_col_code > int_of_char 'A' then
+    l_neighbors := (char_of_int (l_col_code - 1), row) :: !l_neighbors;
+
+  (* droite *)
+  if l_col_code < int_of_char 'A' + 9 then
+    l_neighbors := (char_of_int (l_col_code + 1), row) :: !l_neighbors;
+
+  (* haut *)
+  if row > 0 then
+    l_neighbors := (col, row - 1) :: !l_neighbors;
+
+  (* bas *)
+  if row < 9 then
+    l_neighbors := (col, row + 1) :: !l_neighbors;
+
+  !l_neighbors
+;;
+
+(**
+  Fait couler un bateau : met toutes les cellules connectées à celle de départ
+  à l'état DESTROYED (coulé) si elles sont à l'état TOUCHED.
+
+  @param p_position Coordonnées de la cellule de départ.
+  @param p_grid Grille contenant les cellules.
+  @param p_params Paramètres du jeu.
+  @author Nadia MOUACHA
+  @since version 4
+*)
+let sink_ship (p_position, p_grid, p_params : (char * int) * t_grid * t_params) : unit =
+  let rec sink_ship_rec (position : char * int) : unit =
+    let (col,row) : char * int = position in
+    let (col_index, row_index ) : int * int = cell_index (col, row) in
+    let cell : t_cell = p_grid.(row_index).(col_index) in
+
+    if !(cell.state) = TOUCHED then (
+      cell.state := DESTROYED;
+      CPgraphics.set_color CPgraphics.red;  
+
+    )
+    else (
+      (* Si la cellule n'est pas touchée on fait rien *)
+      ()
+    );
+
+    let neighbors : (char * int) list = get_neighbors (col, row) in
+    
+    for i = 0 to List.length neighbors - 1 do
+      let (n_col, n_row ): char * int = List.nth neighbors i in
+      sink_ship_rec (n_col, n_row)
+    done
+  in
+  sink_ship_rec (p_position)
+;;
+
+
 (**
   Cherche dans la liste des bateaux si un bateau a été touché à l'endroit où le joueur a cliqué.
   @param p_ships Liste des bateaux
@@ -846,6 +848,8 @@ let rec check_sunk_ship(p_ship, p_grid : t_ship * t_grid) : bool =
   @param p_grid la grille de l'ordinateur (type t_grid) sur laquelle le joueur tire
   @param p_ships la liste des bateaux de l'ordinateur (type t_ship list), pour vérifier s'ils sont coulés
   @param p_params les paramètres du jeu 
+  @author Niang Zeinebou
+  @since version 4
 *)
 let rec player_shoot (p_grid, p_ships, p_params : t_grid * t_ship list * t_params) : unit =
   let (l_where, (l_col, l_row)) = read_mouse(p_params) in
@@ -916,7 +920,7 @@ let rec player_shoot (p_grid, p_ships, p_params : t_grid * t_ship list * t_param
     @param p_player_grid Grille du joueur
     @param p_params Paramètres du jeu
     @author Niang Zeinebou
-    @since version 4
+    @since version 5
  *)
 let computer_shoot (p_player_grid, p_params : t_grid * t_params) : unit =
   let l_valid_shot = ref false in
