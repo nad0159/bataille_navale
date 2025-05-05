@@ -419,48 +419,24 @@ Affiche le message en dessous de la grille
  @author Nadia MOUACHA
  @since version 3
 *)
-let display_message (p_message, p_params: string list * t_params) : unit =
-  (* Effacer la zone bleue *)
-  let l_width : int = 2 * !(p_params.cell_size) * !(p_params.grid_size) + 3 * !(p_params.margin) and l_height : int = !(p_params.message_size) in
-  CPgraphics.set_color (CPgraphics.white);
-  CPgraphics.fill_rect (0, 0, l_width, l_height);
+let display_message (p_message, p_params : string list * t_params) : unit =
+  let l_width = !(p_params.margin) + 2 * !(p_params.cell_size) * (!(p_params.grid_size) + 2) 
+  and l_height= !(p_params.message_size) in
 
-  (* le texte *)
-  CPgraphics.set_color (CPgraphics.black);
-  (*CPgraphics.set_text_size (20);*)
+  CPgraphics.moveto (!(p_params.margin), !(p_params.margin));
+  CPgraphics.set_color CPgraphics.white;
+  CPgraphics.fill_rect (!(p_params.margin), !(p_params.margin), l_width, l_height);
 
-  (* Coordonnées de départ *)
-  let start_x : int = !(p_params.margin) and  start_y : int = 5 and line_height : int = 25 in
+  CPgraphics.set_color ;
+  CPgraphics.black;
 
-
-  (* Affichage des messages *)
   for i = 0 to List.length p_message - 1 do
-    CPgraphics.moveto (start_x, start_y + i * line_height);
+    let y_pos = (!(p_params.margin) + l_height) - (i + 2) * !(p_params.cell_size) in
+    CPgraphics.moveto (!(p_params.margin), y_pos);
     CPgraphics.draw_string (List.nth p_message i)
   done
-;;
+;; 
 
-(* HACK: Implementation provisoire en attendant celle de Nadia *)
-(**
-Affiche des messages au joueur.
-@param p_message chaine de charactère qu'il faudra afficher au joueur.
-@param p_params paramètres du jeu.
-@author Bentz POLO
-*)
-(*let display_message(p_message, p_params : string list * t_params ) : unit =*)
-(*  let l_x : int = !(p_params.margin) + 2 * !(p_params.cell_size) * (!(p_params.grid_size) + 2) (* longueur de la zone d'affichage *)*)
-(*  and l_y : int = !(p_params.message_size) (* hauteur de la zone d'affichage *)*)
-(*  in*)
-(*  CPgraphics.moveto(!(p_params.margin), !(p_params.margin));*)
-(*  CPgraphics.set_color(CPgraphics.white);*)
-(*  CPgraphics.fill_rect(!(p_params.margin), !(p_params.margin), l_x, l_y);*)
-(*  (* CPgraphics.draw_rect(!(p_params.margin), !(p_params.margin), l_x, l_y); *)*)
-(*  CPgraphics.set_color(CPgraphics.black);*)
-(*  for i=0 to List.length(p_message) - 1 do*)
-(*    CPgraphics.moveto(!(p_params.margin),(!(p_params.margin) + l_y) - (i+2) * !(p_params.cell_size));*)
-(*    CPgraphics.draw_string(List.nth p_message i)*)
-(*  done*)
-(*;;*)
 
 (**
    Renvoi la cellule où se trouve un pixel donné
